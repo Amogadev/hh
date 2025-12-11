@@ -1,0 +1,183 @@
+{
+  "entities": {
+    "Hotel": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Hotel",
+      "type": "object",
+      "description": "Represents the overall hotel entity, tracking key statistics.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Hotel entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the hotel."
+        },
+        "totalRooms": {
+          "type": "number",
+          "description": "Total number of rooms in the hotel."
+        },
+        "bookedRooms": {
+          "type": "number",
+          "description": "Number of rooms currently booked."
+        },
+        "occupiedRooms": {
+          "type": "number",
+          "description": "Number of rooms currently occupied."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "totalRooms",
+        "bookedRooms",
+        "occupiedRooms"
+      ]
+    },
+    "Room": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Room",
+      "type": "object",
+      "description": "Represents a single room in the hotel.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Room entity."
+        },
+        "hotelId": {
+          "type": "string",
+          "description": "Reference to Hotel. (Relationship: Hotel 1:N Room)"
+        },
+        "roomNumber": {
+          "type": "string",
+          "description": "The room number (e.g., 101)."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the room (e.g., available, booked, occupied).",
+          "format": "string"
+        },
+        "price": {
+          "type": "number",
+          "description": "The price per night for the room."
+        }
+      },
+      "required": [
+        "id",
+        "hotelId",
+        "roomNumber",
+        "status",
+        "price"
+      ]
+    },
+    "Payment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Payment",
+      "type": "object",
+      "description": "Represents a payment transaction.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Payment entity."
+        },
+        "roomId": {
+          "type": "string",
+          "description": "Reference to Room. (Relationship: Room 1:N Payment)"
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount paid."
+        },
+        "paymentDate": {
+          "type": "string",
+          "description": "The date and time of the payment.",
+          "format": "date-time"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "The method of payment (e.g., credit card, cash).",
+          "format": "string"
+        }
+      },
+      "required": [
+        "id",
+        "roomId",
+        "amount",
+        "paymentDate",
+        "paymentMethod"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/hotels/{hotelId}",
+        "definition": {
+          "entityName": "Hotel",
+          "schema": {
+            "$ref": "#/backend/entities/Hotel"
+          },
+          "description": "Stores hotel information.  No denormalized fields are required.",
+          "params": [
+            {
+              "name": "hotelId",
+              "description": "The unique identifier of the hotel."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/hotels/{hotelId}/rooms/{roomId}",
+        "definition": {
+          "entityName": "Room",
+          "schema": {
+            "$ref": "#/backend/entities/Room"
+          },
+          "description": "Stores room information for a specific hotel. No denormalized fields are required.",
+          "params": [
+            {
+              "name": "hotelId",
+              "description": "The unique identifier of the hotel."
+            },
+            {
+              "name": "roomId",
+              "description": "The unique identifier of the room."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/hotels/{hotelId}/rooms/{roomId}/payments/{paymentId}",
+        "definition": {
+          "entityName": "Payment",
+          "schema": {
+            "$ref": "#/backend/entities/Payment"
+          },
+          "description": "Stores payment information for a specific room. No denormalized fields are required.",
+          "params": [
+            {
+              "name": "hotelId",
+              "description": "The unique identifier of the hotel."
+            },
+            {
+              "name": "roomId",
+              "description": "The unique identifier of the room."
+            },
+            {
+              "name": "paymentId",
+              "description": "The unique identifier of the payment."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to manage hotel data including hotels, rooms and payments. It prioritizes authorization independence and simplifies security rules. Each entity is stored in its own collection. Path-based ownership is used where appropriate to ensure data integrity and security. Hotels do not have an owner and are considered globally available. Rooms belong to hotels, and payments belong to rooms, reflecting the relationships described in the input `entities`.\n\nTo ensure Authorization Independence, there is no denormalization required as the entities are accessed globally (Hotel), or through path-based ownership (Rooms and Payments). This eliminates the need for `get()` calls in security rules.  The structure supports secure `list` operations via Structural Segregation, as each collection stores a single entity type with homogeneous security requirements.  The paths are predictable and follow a clear hierarchy which helps readability and debuggability."
+  }
+}

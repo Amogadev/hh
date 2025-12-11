@@ -1,0 +1,116 @@
+/**
+ * @file firestore.rules
+ * @description Firestore Security Rules for the Hotel Management application.
+ *
+ * @section Core Philosophy
+ * This ruleset implements a public, read-only data model. The core design
+ * philosophy is that hotel, room, and payment data is intended for public
+ * consumption. All modifications to the data (creating new hotels, updating
+ * room statuses, etc.) are expected to be handled by a trusted backend server
+ * using the Admin SDK, which bypasses these security rules.
+ *
+ * Client-side applications (web, mobile) are granted read-only access to all
+ * data, but are strictly forbidden from making any write operations to prevent
+ * unauthorized data manipulation.
+ *
+ * @section Data Structure
+ * The data is organized hierarchically to reflect the real-world relationships:
+ * - /hotels/{hotelId}: Top-level documents for each hotel.
+ * - /hotels/{hotelId}/rooms/{roomId}: Subcollection for rooms within a hotel.
+ * - /hotels/{hotelId}/rooms/{roomId}/payments/{paymentId}: Subcollection for payments associated with a room.
+ *
+ * @section Key Security Decisions
+ * - Public Read Access: All data is publicly readable (`get`, `list`) by any
+ *   client, including unauthenticated users. This supports scenarios where
+ *   users can browse hotel and room information without signing in.
+ * - No Client Writes: All write operations (`create`, `update`, `delete`) are
+ *   explicitly disabled for all collections. This is a critical security measure
+ *   as the data model does not contain user ownership or role-based fields,
+ *   making it impossible to safely authorize client-side writes.
+ * - No Data Validation: Because writes are disabled, no data validation rules
+ *   are necessary. Data integrity is assumed to be handled by the backend service.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------------------
+    // Helper Functions
+    // ------------------------------------------------------------------------
+
+    /**
+     * Returns true if the request is from an authenticated user.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * A declarative helper that explicitly signifies a collection is public.
+     * Always returns true.
+     */
+    function isPublic() {
+      return true;
+    }
+
+    /**
+     * A declarative helper that explicitly disables all client-side writes.
+     * Always returns false.
+     */
+    function clientWritesDisabled() {
+      return false;
+    }
+
+    // ------------------------------------------------------------------------
+    // Collection Rules
+    // ------------------------------------------------------------------------
+
+    /**
+     * @description Controls access to Hotel documents.
+     * Hotels are public to read for all users but cannot be modified by clients.
+     * @path /hotels/{hotelId}
+     * @allow (get) Any user can read a specific hotel's details.
+     * @deny (create) A client application cannot create a new hotel document.
+     * @principle Public read access with writes disabled for server-side management.
+     */
+    match /hotels/{hotelId} {
+      allow get: if isPublic();
+      allow list: if isPublic();
+      allow create: if clientWritesDisabled();
+      allow update: if clientWritesDisabled();
+      allow delete: if clientWritesDisabled();
+
+      /**
+       * @description Controls access to Room subcollections.
+       * Rooms are public to read for all users but cannot be modified by clients.
+       * @path /hotels/{hotelId}/rooms/{roomId}
+       * @allow (list) Any user can list all rooms for a given hotel.
+       * @deny (update) A client application cannot update a room's status.
+       * @principle Public read access with writes disabled for server-side management.
+       */
+      match /rooms/{roomId} {
+        allow get: if isPublic();
+        allow list: if isPublic();
+        allow create: if clientWritesDisabled();
+        allow update: if clientWritesDisabled();
+        allow delete: if clientWritesDisabled();
+
+        /**
+         * @description Controls access to Payment subcollections.
+         * Payments are public to read but cannot be modified by clients.
+         * @path /hotels/{hotelId}/rooms/{roomId}/payments/{paymentId}
+         * @allow (get) Any user can retrieve the details of a specific payment.
+         * @deny (delete) A client application cannot delete a payment record.
+         * @principle Public read access with writes disabled for server-side management.
+         */
+        match /payments/{paymentId} {
+          allow get: if isPublic();
+          allow list: if isPublic();
+          allow create: if clientWritesDisabled();
+          allow update: if clientWritesDisabled();
+          allow delete: if clientWritesDisabled();
+        }
+      }
+    }
+  }
+}
