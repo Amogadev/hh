@@ -34,41 +34,11 @@ export const paymentsData: Payment[] = [
 
 export const roomsData: Room[] = [
   { id: '101', name: 'Room 101', status: 'Available' },
-  { 
-    id: '102', 
-    name: 'Room 102', 
-    status: 'Booked', 
-    booking: {
-      checkIn: addDays(today, 2),
-      checkOut: addDays(today, 5),
-      guestName: 'Jane Smith'
-    },
-    payment: paymentsData.find(p => p.invoiceId === 'INV002') 
-  },
+  { id: '102', name: 'Room 102', status: 'Available' },
   { id: '103', name: 'Room 103', status: 'Available' },
-  { 
-    id: '104', 
-    name: 'Room 104', 
-    status: 'Occupied',
-    booking: {
-      checkIn: addDays(today, -2),
-      checkOut: addDays(today, 1),
-      guestName: 'John Doe'
-    },
-    payment: paymentsData.find(p => p.invoiceId === 'INV001')
-  },
+  { id: '104', name: 'Room 104', status: 'Available' },
   { id: '105', name: 'Room 105', status: 'Available' },
-  { 
-    id: '106', 
-    name: 'Room 106', 
-    status: 'Booked',
-    booking: {
-      checkIn: addDays(today, 7),
-      checkOut: addDays(today, 11),
-      guestName: 'Mike Johnson'
-    },
-    payment: paymentsData.find(p => p.invoiceId === 'INV003')
-  },
+  { id: '106', name: 'Room 106', status: 'Available' },
   { id: '107', name: 'Room 107', status: 'Available' },
 ];
 
