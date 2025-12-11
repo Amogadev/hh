@@ -6,11 +6,12 @@ export type Room = {
 
 export const roomsData: Room[] = [
   { id: '101', name: 'Room 101', status: 'Available' },
-  { id: '102', name: 'Room 102', status: 'Occupied' },
-  { id: '103', name: 'Room 103', status: 'Booked' },
+  { id: '102', name: 'Room 102', status: 'Booked' },
+  { id: '103', name: 'Room 103', status: 'Available' },
   { id: '104', name: 'Room 104', status: 'Available' },
-  { id: '105', name: 'Room 105', status: 'Occupied' },
+  { id: '105', name: 'Room 105', status: 'Available' },
   { id: '106', name: 'Room 106', status: 'Available' },
+  { id: '107', name: 'Room 107', status: 'Available' },
 ];
 
 export type Payment = {

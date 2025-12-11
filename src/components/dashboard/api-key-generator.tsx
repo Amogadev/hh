@@ -1,3 +1,5 @@
+// This file is no longer used for the main dashboard page.
+// You can remove it if you no longer need it, or keep it for other purposes.
 "use client";
 
 import * as React from "react";

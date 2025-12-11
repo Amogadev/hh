@@ -17,10 +17,10 @@ import { Badge } from "@/components/ui/badge";
 import { paymentsData, type Payment } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
-const statusVariants: { [key in Payment["status"]]: { variant: "default" | "secondary" | "destructive", className?: string } } = {
-  Paid: { variant: "secondary", className: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300" },
-  Pending: { variant: "default", className: "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300" },
-  Failed: { variant: "destructive" },
+const statusVariants: { [key in Payment["status"]]: string } = {
+  Paid: "bg-green-900/50 text-green-300",
+  Pending: "bg-amber-900/50 text-amber-300",
+  Failed: "bg-red-900/50 text-red-300",
 };
 
 
@@ -47,7 +47,6 @@ export function PaymentDetails() {
           </TableHeader>
           <TableBody>
             {recentPayments.map((payment) => {
-              const { variant, className } = statusVariants[payment.status];
               return (
                 <TableRow key={payment.invoiceId}>
                   <TableCell>
@@ -57,7 +56,7 @@ export function PaymentDetails() {
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <Badge variant={variant} className={cn("border-transparent",className)}>
+                    <Badge variant="outline" className={cn("border-transparent", statusVariants[payment.status])}>
                       {payment.status}
                     </Badge>
                   </TableCell>
