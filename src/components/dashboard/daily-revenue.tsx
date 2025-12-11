@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { DollarSign, Trash2, Wallet } from 'lucide-react';
 import type { Room } from '@/lib/data';
-import { isWithinInterval } from 'date-fns';
+import { isWithinInterval, startOfDay } from 'date-fns';
 
 type DailyRevenueProps = {
   selectedDate: Date;
@@ -23,24 +23,24 @@ export function DailyRevenue({
   rooms,
   onDeleteBooking,
 }: DailyRevenueProps) {
-  const dailyBookedRooms = rooms.filter(
-    (room) =>
-      room.booking &&
-      isWithinInterval(selectedDate, {
-        start: new Date(room.booking.checkIn),
-        end: new Date(room.booking.checkOut),
-      })
-  );
+  const dailyBookedRooms = rooms.filter((room) => {
+    if (!room.booking) return false;
+    const checkIn = startOfDay(new Date(room.booking.checkIn));
+    const checkOut = startOfDay(new Date(room.booking.checkOut));
+    const current = startOfDay(selectedDate);
+    // A room is relevant for today if today is between check-in (inclusive) and check-out (exclusive)
+    return current >= checkIn && current < checkOut;
+  });
 
-  // This will now represent the total amount paid (advance + repayments) for bookings active on the selected day.
-  // This is a simplification. A more complex app might attribute payments to specific days.
   const dailyRevenue = dailyBookedRooms.reduce((acc, room) => {
     if (!room.payment) return acc;
+    // This is the total collected amount for this booking
     return acc + room.payment.advancePaid;
   }, 0);
   
   const totalBookedAmount = dailyBookedRooms.reduce((acc, room) => {
      if (!room.payment) return acc;
+     // This is the total value of the booking
      return acc + room.payment.amount;
   }, 0);
 
