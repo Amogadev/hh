@@ -25,13 +25,13 @@ function DayWithTooltip(props: DayProps) {
   const { date, displayMonth } = props;
   const bookings = getBookings();
   
-  if (date.getMonth() !== displayMonth.getMonth()) {
+  if (!date || !displayMonth || date.getMonth() !== displayMonth.getMonth()) {
     return <td />;
   }
 
   const dayBookings = bookings.filter(
     (booking) =>
-      isWithinInterval(date, { start: booking.checkIn, end: booking.checkOut })
+      booking.checkIn && booking.checkOut && isWithinInterval(date, { start: booking.checkIn, end: booking.checkOut })
   );
 
   const dayContent = (
@@ -80,10 +80,12 @@ export function DashboardCalendar({
   const bookedDays = React.useMemo(() => {
     const days: Date[] = [];
     bookings.forEach((booking) => {
-      const dayIterator = new Date(booking.checkIn);
-      while (dayIterator < booking.checkOut) {
-        days.push(new Date(dayIterator));
-        dayIterator.setDate(dayIterator.getDate() + 1);
+      if (booking.checkIn && booking.checkOut) {
+        const dayIterator = new Date(booking.checkIn);
+        while (dayIterator < booking.checkOut) {
+          days.push(new Date(dayIterator));
+          dayIterator.setDate(dayIterator.getDate() + 1);
+        }
       }
     });
     return days;
