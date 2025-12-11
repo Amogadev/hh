@@ -4,7 +4,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { format, isValid, isSameDay } from "date-fns";
+import { format, isValid } from "date-fns";
 import {
   BookText,
   Calendar as CalendarIcon,
@@ -36,14 +36,15 @@ import {
 import { Logo } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { getBookings } from "@/lib/data";
-import { DayProps, useDayPicker } from "react-day-picker";
+import { DayProps } from "react-day-picker";
 
-function DayWithTooltip({ date, displayMonth }: DayProps) {
-  const { classNames, styles } = useDayPicker();
+function DayWithTooltip(props: DayProps) {
   const bookings = getBookings();
-
   const dayBookings = bookings.filter(
-    (booking) => date >= booking.checkIn && date < booking.checkOut
+    (booking) =>
+      isValid(props.date) &&
+      props.date >= booking.checkIn &&
+      props.date < booking.checkOut
   );
 
   if (dayBookings.length > 0) {
@@ -52,7 +53,7 @@ function DayWithTooltip({ date, displayMonth }: DayProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="relative flex h-full w-full items-center justify-center">
-              {format(date, "d")}
+              {isValid(props.date) ? format(props.date, "d") : <></>}
               <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />
             </div>
           </TooltipTrigger>
@@ -73,7 +74,7 @@ function DayWithTooltip({ date, displayMonth }: DayProps) {
     );
   }
 
-  return <>{format(date, "d")}</>;
+  return <>{isValid(props.date) ? format(props.date, "d") : <></>}</>;
 }
 
 export function Header() {
@@ -116,14 +117,14 @@ export function Header() {
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {date ? format(date, "PPP") : <span>Pick a date</span>}
+              {date && isValid(date) ? format(date, "PPP") : <span>Pick a date</span>}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="end">
             <Calendar
               mode="single"
               selected={date}
-              onSelect={(d) => d && setDate(d)}
+              onSelect={(d) => d && isValid(d) && setDate(d)}
               initialFocus
               month={date}
               modifiers={{ booked: bookedDays }}
