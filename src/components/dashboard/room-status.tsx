@@ -12,9 +12,10 @@ import type { Room } from '@/lib/data';
 type RoomStatusProps = {
   selectedDate: Date;
   rooms: Room[];
+  onUpdateRoom: (roomId: string, newBookingData: Room) => void;
 };
 
-export function RoomStatus({ selectedDate, rooms }: RoomStatusProps) {
+export function RoomStatus({ selectedDate, rooms, onUpdateRoom }: RoomStatusProps) {
   return (
     <Card>
       <CardHeader>
@@ -24,7 +25,7 @@ export function RoomStatus({ selectedDate, rooms }: RoomStatusProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <RoomStatusGrid selectedDate={selectedDate} rooms={rooms} />
+        <RoomStatusGrid selectedDate={selectedDate} rooms={rooms} onUpdateRoom={onUpdateRoom} />
       </CardContent>
     </Card>
   );

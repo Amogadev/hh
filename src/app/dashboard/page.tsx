@@ -27,6 +27,11 @@ export default function DashboardPage() {
       })
     );
   };
+  
+  const handleUpdateRoom = (roomId: string, newBookingData: Room) => {
+    setRooms(prevRooms => prevRooms.map(r => r.id === roomId ? newBookingData : r));
+  };
+
 
   return (
     <div className="flex flex-1 flex-col gap-6">
@@ -46,7 +51,7 @@ export default function DashboardPage() {
           />
         </div>
       </div>
-      <RoomStatus selectedDate={selectedDate} rooms={rooms} />
+      <RoomStatus selectedDate={selectedDate} rooms={rooms} onUpdateRoom={handleUpdateRoom} />
     </div>
   );
 }
