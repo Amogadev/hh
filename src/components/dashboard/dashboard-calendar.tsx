@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -24,13 +25,17 @@ function DayWithTooltip(props: DayProps) {
   const { date, displayMonth } = props;
   const bookings = getBookings();
   
+  if (!date) {
+    return <td />;
+  }
+
   const dayBookings = bookings.filter(
     (booking) =>
-      date && isWithinInterval(date, { start: booking.checkIn, end: booking.checkOut })
+      isWithinInterval(date, { start: booking.checkIn, end: booking.checkOut })
   );
 
-  if (!date || date.getMonth() !== displayMonth.getMonth()) {
-    return <div />;
+  if (date.getMonth() !== displayMonth.getMonth()) {
+    return <td />;
   }
 
   const dayContent = (
@@ -45,7 +50,9 @@ function DayWithTooltip(props: DayProps) {
       <TooltipProvider delayDuration={0}>
         <Tooltip>
           <TooltipTrigger asChild>
-            {dayContent}
+            <td {...props.tdProps} className={props.className}>
+                {dayContent}
+            </td>
           </TooltipTrigger>
           <TooltipContent>
             <ul>
@@ -64,8 +71,9 @@ function DayWithTooltip(props: DayProps) {
     );
   }
 
-  return <div>{format(date, 'd')}</div>;
+  return <td {...props.tdProps} className={props.className}>{format(date, 'd')}</td>;
 }
+
 
 export function DashboardCalendar({
   selectedDate,
@@ -107,7 +115,7 @@ export function DashboardCalendar({
           components={{
             Day: DayWithTooltip,
           }}
-        />
+        </Calendar>
       </CardContent>
     </Card>
   );
