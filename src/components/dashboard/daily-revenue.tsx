@@ -27,20 +27,23 @@ export function DailyRevenue({
     (room) =>
       room.booking &&
       isWithinInterval(selectedDate, {
-        start: room.booking.checkIn,
-        end: room.booking.checkOut,
+        start: new Date(room.booking.checkIn),
+        end: new Date(room.booking.checkOut),
       })
   );
 
+  // This will now represent the total amount paid (advance + repayments) for bookings active on the selected day.
+  // This is a simplification. A more complex app might attribute payments to specific days.
   const dailyRevenue = dailyBookedRooms.reduce((acc, room) => {
-    if (!room.booking || !room.payment) return acc;
-    // Calculate nightly rate
-    const bookingDays =
-      (room.booking.checkOut.getTime() - room.booking.checkIn.getTime()) /
-      (1000 * 3600 * 24);
-    const nightlyRate = bookingDays > 0 ? room.payment.amount / bookingDays : 0;
-    return acc + nightlyRate;
+    if (!room.payment) return acc;
+    return acc + room.payment.advancePaid;
   }, 0);
+  
+  const totalBookedAmount = dailyBookedRooms.reduce((acc, room) => {
+     if (!room.payment) return acc;
+     return acc + room.payment.amount;
+  }, 0);
+
 
   return (
     <Card>
@@ -54,13 +57,13 @@ export function DailyRevenue({
         <div className="grid grid-cols-2 gap-4">
           <Card className="p-4 text-center">
             <DollarSign className="mx-auto h-6 w-6 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground mt-1">Total Income</p>
+            <p className="text-sm text-muted-foreground mt-1">Total Collected</p>
             <p className="text-2xl font-bold">₹{dailyRevenue.toFixed(2)}</p>
           </Card>
           <Card className="p-4 text-center">
             <Wallet className="mx-auto h-6 w-6 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground mt-1">Rooms Booked</p>
-            <p className="text-2xl font-bold">{dailyBookedRooms.length}</p>
+            <p className="text-sm text-muted-foreground mt-1">Total Booked Value</p>
+            <p className="text-2xl font-bold">₹{totalBookedAmount.toFixed(2)}</p>
           </Card>
         </div>
         <div className="space-y-2">
@@ -80,9 +83,14 @@ export function DailyRevenue({
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">
-                        ₹{room.payment.amount.toFixed(2)} ({room.payment.method})
-                      </span>
+                      <div className="text-right">
+                        <span className="font-medium">
+                          ₹{room.payment.amount.toFixed(2)}
+                        </span>
+                        <p className={`text-xs ${room.payment.pending > 0 ? 'text-orange-400' : 'text-green-400'}`}>
+                          {room.payment.pending > 0 ? `(Pending: ₹${room.payment.pending.toFixed(2)})` : '(Paid)'}
+                        </p>
+                      </div>
                       <Button
                         variant="ghost"
                         size="icon"
