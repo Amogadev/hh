@@ -18,7 +18,7 @@ export type Payment = {
   date: string;
   amount: number;
   status: 'Paid' | 'Pending' | 'Failed';
-  method: 'Credit Card' | 'Cash' | 'Bank Transfer';
+  method: 'Credit Card' | 'Cash' | 'Bank Transfer' | 'GPay' | 'PhonePe';
 };
 
 const today = new Date("2025-12-11");

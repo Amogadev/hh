@@ -51,7 +51,7 @@ type BookingData = {
     guestName: string;
     checkIn: Date;
     checkOut: Date;
-    paymentMethod: "Credit Card" | "Cash" | "Bank Transfer";
+    paymentMethod: "Credit Card" | "Cash" | "Bank Transfer" | "GPay" | "PhonePe";
     totalAmount: number;
     advancePayment: number;
 };

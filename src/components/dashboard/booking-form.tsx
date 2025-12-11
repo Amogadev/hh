@@ -47,7 +47,7 @@ const bookingFormSchema = z
     guestName: z.string().min(1, 'Guest name is required'),
     checkIn: z.coerce.date({ required_error: 'Check-in date is required.' }),
     checkOut: z.coerce.date({ required_error: 'Check-out date is required.' }),
-    paymentMethod: z.enum(['Credit Card', 'Cash', 'Bank Transfer']),
+    paymentMethod: z.enum(['Credit Card', 'Cash', 'Bank Transfer', 'GPay', 'PhonePe']),
     totalAmount: z.coerce.number().min(0, 'Total amount must be positive'),
     advancePayment: z.coerce.number().min(0, 'Advance payment must be positive'),
   })
@@ -188,6 +188,8 @@ export function BookingForm({
                       <SelectItem value="Credit Card">Credit Card</SelectItem>
                       <SelectItem value="Cash">Cash</SelectItem>
                       <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="GPay">GPay</SelectItem>
+                      <SelectItem value="PhonePe">PhonePe</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
