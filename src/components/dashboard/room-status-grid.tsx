@@ -12,7 +12,7 @@ import type { Room, Payment } from '@/lib/data';
 import { Bed, User, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { format, isWithinInterval } from 'date-fns';
+import { format, isWithinInterval, isToday } from 'date-fns';
 import { BookingForm } from './booking-form';
 
 const statusConfig = {
@@ -37,16 +37,28 @@ function getRoomStatusForDate(room: Room, date: Date): Room['status'] {
   if (!room.booking) return 'Available';
 
   const { checkIn, checkOut } = room.booking;
-  const normalizedDate = new Date(date);
-  normalizedDate.setHours(0,0,0,0);
+  const checkInDate = new Date(checkIn);
+  const checkOutDate = new Date(checkOut);
   
-  const isBooked = isWithinInterval(normalizedDate, { start: new Date(checkIn), end: new Date(checkOut) });
+  // Normalize dates to remove time component for accurate comparison
+  const normalizedDate = new Date(date);
+  normalizedDate.setHours(0, 0, 0, 0);
 
-  if (isBooked) {
-    // If today is the check-in date, it's occupied.
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (new Date(checkIn).getTime() === today.getTime()) {
+  const normalizedCheckIn = new Date(checkInDate);
+  normalizedCheckIn.setHours(0, 0, 0, 0);
+  
+  const normalizedCheckOut = new Date(checkOutDate);
+  normalizedCheckOut.setHours(0, 0, 0, 0);
+
+  const isWithin = isWithinInterval(normalizedDate, {
+    start: normalizedCheckIn,
+    // isWithinInterval is exclusive of the end date, so we don't subtract a day
+    end: normalizedCheckOut,
+  });
+
+  if (isWithin) {
+    // If the selected date is the same as the check-in date, it's Occupied.
+    if (normalizedDate.getTime() >= normalizedCheckIn.getTime()) {
       return 'Occupied';
     }
     return 'Booked';
@@ -54,6 +66,7 @@ function getRoomStatusForDate(room: Room, date: Date): Room['status'] {
 
   return 'Available';
 }
+
 
 type BookingData = {
     guestName: string;
@@ -96,7 +109,7 @@ export function RoomStatusGrid({
 
     const updatedRoom: Room = {
       ...originalRoom,
-      status: checkInDate.getTime() === today.getTime() ? 'Occupied' : 'Booked',
+      status: 'Booked', // Set status to booked initially
       booking: {
         guestName: values.guestName,
         checkIn: values.checkIn,
