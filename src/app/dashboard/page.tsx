@@ -26,40 +26,6 @@ function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
     return date instanceof Timestamp ? date.toDate() : date;
 }
 
-function getRoomStatusForDate(room: Room, date: Date): Room['status'] {
-  if (!room.booking) return 'Available';
-
-  const checkInDate = startOfDay(getDateFromTimestampOrDate(room.booking.checkIn));
-  const checkOutDate = startOfDay(getDateFromTimestampOrDate(room.booking.checkOut));
-  const selectedDate = startOfDay(date);
-
-  if (selectedDate >= checkInDate && selectedDate < checkOutDate) {
-    return 'Occupied';
-  }
-  
-  // A booking exists, but it's not for the selected date. Check if it's a future booking relative to the selected date.
-  if (checkInDate > selectedDate) {
-    // This is a future booking, but for today's view, the room is available.
-    // The "Booked" status is more of a global state for the room if it has ANY future booking.
-    // For a specific date, it's either Occupied or Available.
-    // However, to meet the user requirement of seeing "Booked" rooms, we will show them in a separate list.
-    // For the purpose of coloring the card and its primary status for a given day, we need a clear rule.
-    // Let's stick to: if you can't check in yet, it's not occupied.
-  }
-
-  // To show "Booked" status correctly, we need to know if there's any booking at all.
-  // The logic in the parent component will handle this distinction.
-  // For this function, let's refine it:
-  if (selectedDate >= checkInDate && selectedDate < checkOutDate) {
-    return 'Occupied';
-  }
-
-  // If the room has a booking, but it's not for today, it is technically "Available" for today.
-  // The "Booked" status will be derived from the existence of a future booking.
-  return 'Available';
-}
-
-
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = React.useState<Date>(
     new Date('2025-12-11')
@@ -67,6 +33,7 @@ export default function DashboardPage() {
   const firestore = useFirestore();
 
   const roomsCollectionRef = useMemoFirebase(() => {
+    if (!firestore) return null;
     return collection(firestore, 'hotels', HOTEL_ID, 'rooms');
   }, [firestore]);
 
@@ -146,6 +113,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6">
+      <h1 className="text-3xl font-bold text-center tracking-tight">Where Every Stay is a Story.</h1>
       {roomsLoading && <p>Loading rooms...</p>}
       {!roomsLoading && (
         <>

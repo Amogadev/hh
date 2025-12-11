@@ -27,10 +27,6 @@ export function Header() {
         <span className="text-xl">HOTEL</span>
       </Link>
       <div className="flex flex-1 items-center gap-4">
-        <p className="text-sm text-muted-foreground hidden md:block">
-          Where Every Stay is a Story.
-        </p>
-        <BookText className="w-5 h-5 text-muted-foreground hidden md:block" />
       </div>
 
       <div className="flex items-center gap-4">
