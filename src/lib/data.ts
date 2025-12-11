@@ -43,7 +43,6 @@ export const roomsData: Room[] = [
   { id: '104', name: 'Room 104', status: 'Available' },
   { id: '105', name: 'Room 105', status: 'Available' },
   { id: '106', name: 'Room 106', status: 'Available' },
-  { id: '107', name: 'Room 107', status: 'Available' },
 ];
 
 export const getDashboardStats = () => {
