@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -7,6 +8,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  AuthError,
 } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
@@ -44,19 +47,42 @@ export function LoginForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
+      // First, try to sign in the user
       await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
         title: "Login Successful",
         description: "Redirecting to your dashboard...",
       });
       router.push("/dashboard");
-    } catch (error: any) {
-      console.error("Login failed", error);
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: error.message || "Invalid credentials. Please try again.",
-      });
+    } catch (error) {
+      const authError = error as AuthError;
+      
+      // If the user does not exist, create a new account
+      if (authError.code === 'auth/user-not-found' || authError.code === 'auth/invalid-credential') {
+        try {
+          await createUserWithEmailAndPassword(auth, values.email, values.password);
+          toast({
+            title: "Account Created",
+            description: "New account created successfully. Redirecting...",
+          });
+          router.push("/dashboard");
+        } catch (signUpError: any) {
+          console.error("Sign up failed", signUpError);
+          toast({
+            variant: "destructive",
+            title: "Sign Up Failed",
+            description: signUpError.message || "Could not create a new account.",
+          });
+        }
+      } else {
+        // Handle other login errors
+        console.error("Login failed", error);
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: authError.message || "Invalid credentials. Please try again.",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
