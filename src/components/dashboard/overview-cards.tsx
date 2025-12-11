@@ -92,11 +92,11 @@ export function OverviewCards({ rooms }: { rooms: Room[] }) {
           {stats.map((stat) => (
             <div
               key={stat.title}
-              className="flex items-center gap-4 p-2 rounded-lg bg-card"
+              className="flex items-center gap-4 p-4 rounded-lg bg-card"
             >
               <stat.icon className={cn('h-8 w-8', stat.color)} />
               <div>
-                <p className="text-lg font-bold">{stat.value}</p>
+                <p className="text-2xl font-bold">{stat.value}</p>
                 <p className="text-sm text-muted-foreground">{stat.title}</p>
               </div>
             </div>
