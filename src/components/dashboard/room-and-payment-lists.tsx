@@ -45,7 +45,51 @@ export function RoomAndPaymentLists({ rooms, onDeleteBooking }: RoomAndPaymentLi
         <CardDescription>Room status and payments for the selected date.</CardDescription>
       </CardHeader>
       <CardContent>
-        <Accordion type="multiple" defaultValue={['occupied', 'booked', 'available', 'payments']} className="w-full">
+        <Accordion type="multiple" defaultValue={['payments', 'occupied', 'booked', 'available']} className="w-full">
+          {/* Payment History */}
+          <AccordionItem value="payments">
+            <AccordionTrigger className='font-semibold'>Payment History ({paymentHistory.length})</AccordionTrigger>
+            <AccordionContent>
+              {paymentHistory.length > 0 ? (
+                 <ul className="space-y-2">
+                    {paymentHistory.map((room) =>
+                        room.payment ? (
+                        <li
+                            key={room.id}
+                            className="flex justify-between items-center text-sm"
+                        >
+                            <div className="flex flex-col">
+                            <span>{room.payment.guestName}</span>
+                            <span className="text-xs text-muted-foreground">
+                                {room.name}
+                            </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                            <div className="text-right">
+                                <span className="font-medium">
+                                ₹{room.payment.amount.toFixed(2)}
+                                </span>
+                                <p className={`text-xs ${room.payment.pending > 0 ? 'text-orange-400' : 'text-green-400'}`}>
+                                {room.payment.pending > 0 ? `(Pending: ₹${room.payment.pending.toFixed(2)})` : '(Paid)'}
+                                </p>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                onClick={() => onDeleteBooking(room.id)}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                                <span className="sr-only">Delete Booking</span>
+                            </Button>
+                            </div>
+                        </li>
+                        ) : null
+                    )}
+                 </ul>
+              ) : <p className="text-sm text-muted-foreground">No payment history for this date.</p>}
+            </AccordionContent>
+          </AccordionItem>
           {/* Occupied Rooms */}
           <AccordionItem value="occupied">
             <AccordionTrigger className='font-semibold'>Occupied ({occupiedRooms.length})</AccordionTrigger>
@@ -97,50 +141,6 @@ export function RoomAndPaymentLists({ rooms, onDeleteBooking }: RoomAndPaymentLi
                   ))}
                 </ul>
               ) : <p className="text-sm text-muted-foreground">No available rooms.</p>}
-            </AccordionContent>
-          </AccordionItem>
-          {/* Payment History */}
-          <AccordionItem value="payments">
-            <AccordionTrigger className='font-semibold'>Payment History ({paymentHistory.length})</AccordionTrigger>
-            <AccordionContent>
-              {paymentHistory.length > 0 ? (
-                 <ul className="space-y-2">
-                    {paymentHistory.map((room) =>
-                        room.payment ? (
-                        <li
-                            key={room.id}
-                            className="flex justify-between items-center text-sm"
-                        >
-                            <div className="flex flex-col">
-                            <span>{room.payment.guestName}</span>
-                            <span className="text-xs text-muted-foreground">
-                                {room.name}
-                            </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                            <div className="text-right">
-                                <span className="font-medium">
-                                ₹{room.payment.amount.toFixed(2)}
-                                </span>
-                                <p className={`text-xs ${room.payment.pending > 0 ? 'text-orange-400' : 'text-green-400'}`}>
-                                {room.payment.pending > 0 ? `(Pending: ₹${room.payment.pending.toFixed(2)})` : '(Paid)'}
-                                </p>
-                            </div>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                                onClick={() => onDeleteBooking(room.id)}
-                            >
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">Delete Booking</span>
-                            </Button>
-                            </div>
-                        </li>
-                        ) : null
-                    )}
-                 </ul>
-              ) : <p className="text-sm text-muted-foreground">No payment history for this date.</p>}
             </AccordionContent>
           </AccordionItem>
         </Accordion>
