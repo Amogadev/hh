@@ -45,8 +45,8 @@ import { Label } from '@/components/ui/label';
 const bookingFormSchema = z
   .object({
     guestName: z.string().min(1, 'Guest name is required'),
-    checkIn: z.date({ required_error: 'Check-in date is required.' }),
-    checkOut: z.date({ required_error: 'Check-out date is required.' }),
+    checkIn: z.coerce.date({ required_error: 'Check-in date is required.' }),
+    checkOut: z.coerce.date({ required_error: 'Check-out date is required.' }),
     paymentMethod: z.enum(['Credit Card', 'Cash', 'Bank Transfer']),
     totalAmount: z.coerce.number().min(0, 'Total amount must be positive'),
     advancePayment: z.coerce.number().min(0, 'Advance payment must be positive'),
@@ -141,36 +141,15 @@ export function BookingForm({
                 control={form.control}
                 name="checkIn"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem>
                     <FormLabel>Check-in Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={'outline'}
-                            className={cn(
-                              'w-full pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, 'PPP')
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <FormControl>
+                      <Input 
+                        type="date" 
+                        {...field}
+                        value={field.value instanceof Date ? format(field.value, 'yyyy-MM-dd') : field.value}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -179,36 +158,15 @@ export function BookingForm({
                 control={form.control}
                 name="checkOut"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem>
                     <FormLabel>Check-out Date</FormLabel>
-                     <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={'outline'}
-                            className={cn(
-                              'w-full pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, 'PPP')
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                     <FormControl>
+                      <Input 
+                        type="date" 
+                        {...field} 
+                        value={field.value instanceof Date ? format(field.value, 'yyyy-MM-dd') : field.value}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
