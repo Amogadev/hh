@@ -7,12 +7,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { RoomStatusGrid } from './room-status-grid';
+import type { Room } from '@/lib/data';
 
 type RoomStatusProps = {
   selectedDate: Date;
+  rooms: Room[];
 };
 
-export function RoomStatus({ selectedDate }: RoomStatusProps) {
+export function RoomStatus({ selectedDate, rooms }: RoomStatusProps) {
   return (
     <Card>
       <CardHeader>
@@ -22,7 +24,7 @@ export function RoomStatus({ selectedDate }: RoomStatusProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <RoomStatusGrid selectedDate={selectedDate} />
+        <RoomStatusGrid selectedDate={selectedDate} rooms={rooms} />
       </CardContent>
     </Card>
   );

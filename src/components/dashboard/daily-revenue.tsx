@@ -7,16 +7,23 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { DollarSign, Wallet } from 'lucide-react';
-import { roomsData } from '@/lib/data';
+import { Button } from '@/components/ui/button';
+import { DollarSign, Trash2, Wallet } from 'lucide-react';
+import type { Room } from '@/lib/data';
 import { isWithinInterval } from 'date-fns';
 
 type DailyRevenueProps = {
   selectedDate: Date;
+  rooms: Room[];
+  onDeleteBooking: (roomId: string) => void;
 };
 
-export function DailyRevenue({ selectedDate }: DailyRevenueProps) {
-  const dailyBookedRooms = roomsData.filter(
+export function DailyRevenue({
+  selectedDate,
+  rooms,
+  onDeleteBooking,
+}: DailyRevenueProps) {
+  const dailyBookedRooms = rooms.filter(
     (room) =>
       room.booking &&
       isWithinInterval(selectedDate, {
@@ -27,9 +34,14 @@ export function DailyRevenue({ selectedDate }: DailyRevenueProps) {
 
   const dailyRevenue = dailyBookedRooms.reduce((acc, room) => {
     // This is a simplification. In a real app, you'd divide total by number of days.
-    return acc + (room.payment?.amount || 0) / ((room.booking?.checkOut.getTime() ?? 1) - (room.booking?.checkIn.getTime() ?? 1)) * (1000 * 3600 * 24);
+    return (
+      acc +
+      (room.payment?.amount || 0) /
+        (((room.booking?.checkOut.getTime() ?? 1) -
+          (room.booking?.checkIn.getTime() ?? 1)) /
+          (1000 * 3600 * 24))
+    );
   }, 0);
-
 
   return (
     <Card>
@@ -62,10 +74,26 @@ export function DailyRevenue({ selectedDate }: DailyRevenueProps) {
                     key={room.id}
                     className="flex justify-between items-center text-sm"
                   >
-                    <span>{room.payment.guestName}</span>
-                    <span className="font-medium">
-                      ${room.payment.amount.toFixed(2)} ({room.payment.method})
-                    </span>
+                    <div className="flex flex-col">
+                      <span>{room.payment.guestName}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {room.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">
+                        ${room.payment.amount.toFixed(2)} ({room.payment.method})
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => onDeleteBooking(room.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Delete Booking</span>
+                      </Button>
+                    </div>
                   </li>
                 ) : null
               )}

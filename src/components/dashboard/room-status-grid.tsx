@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { roomsData, type Room } from '@/lib/data';
+import type { Room } from '@/lib/data';
 import { Bed, User, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -36,16 +36,25 @@ function getRoomStatusForDate(room: Room, date: Date): Room['status'] {
 
   const { checkIn, checkOut } = room.booking;
   if (isWithinInterval(date, { start: checkIn, end: checkOut })) {
-    return room.status; // Occupied or Booked
+    // If a room has a booking covering the selected date, its status is determined by the data.
+    // If there's a booking but the status is 'Available', it's likely a data inconsistency.
+    // For this view, we'll prioritize the booking's existence.
+    return room.status === 'Available' ? 'Booked' : room.status;
   }
 
   return 'Available';
 }
 
-export function RoomStatusGrid({ selectedDate }: { selectedDate: Date }) {
+export function RoomStatusGrid({
+  selectedDate,
+  rooms,
+}: {
+  selectedDate: Date;
+  rooms: Room[];
+}) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {roomsData.map((room) => {
+      {rooms.map((room) => {
         const status = getRoomStatusForDate(room, selectedDate);
         return <RoomCard key={room.id} room={room} effectiveStatus={status} />;
       })}
