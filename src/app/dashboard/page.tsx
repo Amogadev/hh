@@ -6,14 +6,12 @@ import { DashboardCalendar } from '@/components/dashboard/dashboard-calendar';
 import { RoomStatus } from '@/components/dashboard/room-status';
 import { Room } from '@/lib/data';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc, writeBatch, getDocs } from 'firebase/firestore';
-import { Button } from '@/components/ui/button';
+import { collection, doc, writeBatch, getDocs, Timestamp } from 'firebase/firestore';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { Timestamp } from 'firebase/firestore';
-import { startOfDay } from 'date-fns';
+import { startOfDay, isWithinInterval } from 'date-fns';
 
 const HOTEL_ID = 'hotel-123';
-const baseRooms: Omit<Room, 'status'>[] = [
+const baseRooms: Omit<Room, 'status' | 'effectiveStatus'>[] = [
   { id: '101', name: 'Room 101' },
   { id: '102', name: 'Room 102' },
   { id: '103', name: 'Room 103' },
@@ -25,6 +23,26 @@ const baseRooms: Omit<Room, 'status'>[] = [
 function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
     return date instanceof Timestamp ? date.toDate() : date;
 }
+
+function getRoomStatusForDate(room: Room, date: Date): 'Available' | 'Occupied' | 'Booked' {
+    if (room.booking) {
+        const checkIn = startOfDay(getDateFromTimestampOrDate(room.booking.checkIn));
+        const checkOut = startOfDay(getDateFromTimestampOrDate(room.booking.checkOut));
+        const selectedDay = startOfDay(date);
+
+        if (isWithinInterval(selectedDay, { start: checkIn, end: checkOut })) {
+             // If today is check-out day, it should be available.
+            if (selectedDay.getTime() === checkOut.getTime()) {
+                return 'Available';
+            }
+            return 'Occupied';
+        } else if (checkIn > selectedDay) {
+            return 'Booked';
+        }
+    }
+    return 'Available';
+}
+
 
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = React.useState<Date>(
@@ -80,7 +98,6 @@ export default function DashboardPage() {
   
   const displayRooms = React.useMemo(() => {
     const firestoreRoomsMap = new Map(firestoreRooms?.map(room => [room.id, room]));
-    const selectedDay = startOfDay(selectedDate);
 
     return baseRooms.map(baseRoom => {
       const firestoreRoomData = firestoreRoomsMap.get(baseRoom.id);
@@ -91,20 +108,7 @@ export default function DashboardPage() {
       };
 
       // Determine the status based on the selected date
-      if (mergedRoom.booking) {
-        const checkIn = startOfDay(getDateFromTimestampOrDate(mergedRoom.booking.checkIn));
-        const checkOut = startOfDay(getDateFromTimestampOrDate(mergedRoom.booking.checkOut));
-        
-        if (selectedDay >= checkIn && selectedDay < checkOut) {
-          mergedRoom.status = 'Occupied';
-        } else if (checkIn > selectedDay) {
-          mergedRoom.status = 'Booked';
-        } else {
-          mergedRoom.status = 'Available';
-        }
-      } else {
-        mergedRoom.status = 'Available';
-      }
+      mergedRoom.status = getRoomStatusForDate(mergedRoom, selectedDate);
 
       return mergedRoom;
     });
@@ -113,7 +117,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <h1 className="text-3xl font-bold text-center tracking-tight">Where Every Stay is a Story.</h1>
+      <h1 className="text-2xl font-bold text-center tracking-tight">Where Every Stay is a Story.</h1>
       {roomsLoading && <p>Loading rooms...</p>}
       {!roomsLoading && (
         <>
