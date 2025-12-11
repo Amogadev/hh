@@ -24,7 +24,7 @@ export function Header() {
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur sm:px-6">
       <Link href="#" className="flex items-center gap-2 font-semibold">
         <Logo className="h-6 w-6" />
-        <span className="text-xl">HotelZenith</span>
+        <span className="text-xl">HOTEL</span>
       </Link>
       <div className="flex flex-1 items-center gap-4">
         <p className="text-sm text-muted-foreground hidden md:block">

@@ -25,7 +25,7 @@ export default function LoginPage() {
           <div className="grid gap-2 text-center">
             <div className="flex items-center justify-center text-2xl font-semibold mb-2">
                 <Logo className="h-8 w-8 mr-2" />
-                HotelZenith
+                HOTEL
             </div>
             <h1 className="text-3xl font-bold font-headline">Welcome Back</h1>
           </div>
