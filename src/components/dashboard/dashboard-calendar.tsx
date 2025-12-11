@@ -25,7 +25,7 @@ function DayWithTooltip(props: DayProps) {
   const { date, displayMonth } = props;
   const bookings = getBookings();
   
-  if (!date) {
+  if (date.getMonth() !== displayMonth.getMonth()) {
     return <td />;
   }
 
@@ -33,10 +33,6 @@ function DayWithTooltip(props: DayProps) {
     (booking) =>
       isWithinInterval(date, { start: booking.checkIn, end: booking.checkOut })
   );
-
-  if (date.getMonth() !== displayMonth.getMonth()) {
-    return <td />;
-  }
 
   const dayContent = (
     <div className="relative flex h-full w-full items-center justify-center">
