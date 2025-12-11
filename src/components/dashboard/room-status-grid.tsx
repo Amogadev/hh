@@ -1,9 +1,10 @@
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { roomsData, type Room } from "@/lib/data";
 import { Bed, User, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
 
 const statusConfig = {
   Available: {
@@ -53,8 +54,15 @@ function RoomCard({ room }: { room: Room }) {
           <p className="text-muted-foreground">Ready for booking</p>
         ) : (
           <div className="text-sm">
-            <p className="font-semibold flex items-center gap-2"><User className="w-4 h-4" /> AD</p>
-            <p className="text-muted-foreground flex items-center gap-2"><Calendar className="w-4 h-4" /> Next: Dec 18 - Dec 22</p>
+             {room.booking && (
+              <>
+                <p className="font-semibold flex items-center gap-2"><User className="w-4 h-4" /> {room.booking.guestName}</p>
+                <p className="text-muted-foreground flex items-center gap-2">
+                  <Calendar className="w-4 h-4" /> 
+                  {format(room.booking.checkIn, "MMM d")} - {format(room.booking.checkOut, "MMM d")}
+                </p>
+              </>
+            )}
           </div>
         )}
       </CardContent>

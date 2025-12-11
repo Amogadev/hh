@@ -1,7 +1,14 @@
+import { addDays, format } from "date-fns";
+
 export type Room = {
   id: string;
   name: string;
   status: 'Available' | 'Booked' | 'Occupied';
+  booking?: {
+    checkIn: Date;
+    checkOut: Date;
+    guestName: string;
+  };
   payment?: Payment;
 };
 
@@ -14,6 +21,8 @@ export type Payment = {
   method: 'Credit Card' | 'Cash' | 'Bank Transfer';
 };
 
+const today = new Date("2025-12-11");
+
 export const paymentsData: Payment[] = [
   { invoiceId: 'INV001', guestName: 'John Doe', date: '2024-07-20', amount: 350.00, status: 'Paid', method: 'Credit Card' },
   { invoiceId: 'INV002', guestName: 'Jane Smith', date: '2024-07-19', amount: 720.50, status: 'Paid', method: 'Credit Card' },
@@ -25,11 +34,41 @@ export const paymentsData: Payment[] = [
 
 export const roomsData: Room[] = [
   { id: '101', name: 'Room 101', status: 'Available' },
-  { id: '102', name: 'Room 102', status: 'Booked', payment: paymentsData.find(p => p.invoiceId === 'INV002') },
+  { 
+    id: '102', 
+    name: 'Room 102', 
+    status: 'Booked', 
+    booking: {
+      checkIn: addDays(today, 2),
+      checkOut: addDays(today, 5),
+      guestName: 'Jane Smith'
+    },
+    payment: paymentsData.find(p => p.invoiceId === 'INV002') 
+  },
   { id: '103', name: 'Room 103', status: 'Available' },
-  { id: '104', name: 'Room 104', status: 'Available' },
+  { 
+    id: '104', 
+    name: 'Room 104', 
+    status: 'Occupied',
+    booking: {
+      checkIn: addDays(today, -2),
+      checkOut: addDays(today, 1),
+      guestName: 'John Doe'
+    },
+    payment: paymentsData.find(p => p.invoiceId === 'INV001')
+  },
   { id: '105', name: 'Room 105', status: 'Available' },
-  { id: '106', name: 'Room 106', status: 'Available' },
+  { 
+    id: '106', 
+    name: 'Room 106', 
+    status: 'Booked',
+    booking: {
+      checkIn: addDays(today, 7),
+      checkOut: addDays(today, 11),
+      guestName: 'Mike Johnson'
+    },
+    payment: paymentsData.find(p => p.invoiceId === 'INV003')
+  },
   { id: '107', name: 'Room 107', status: 'Available' },
 ];
 
@@ -39,3 +78,13 @@ export const getDashboardStats = () => {
   const occupiedRooms = roomsData.filter(r => r.status === 'Occupied').length;
   return { totalRooms, bookedRooms, occupiedRooms };
 };
+
+export const getBookings = () => {
+  return roomsData
+    .filter((room): room is Room & { booking: NonNullable<Room['booking']> } => !!room.booking)
+    .map(room => ({
+      ...room.booking,
+      roomName: room.name,
+      status: room.status,
+    }));
+}

@@ -8,6 +8,7 @@ import {
   BookText,
   Calendar as CalendarIcon,
   CircleUser,
+  Bed,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -25,11 +26,70 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Logo } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import { getBookings } from "@/lib/data";
+
+type DayWithTooltipProps = {
+  day: Date;
+  bookings: ReturnType<typeof getBookings>;
+};
+
+function DayWithTooltip({ day, bookings }: DayWithTooltipProps) {
+  const dayBookings = bookings.filter(
+    (booking) =>
+      day >= booking.checkIn && day < booking.checkOut
+  );
+
+  if (dayBookings.length > 0) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="relative flex h-full w-full items-center justify-center">
+              {format(day, "d")}
+              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <ul>
+              {dayBookings.map((booking, index) => (
+                <li key={index} className="flex items-center gap-2">
+                  <Bed className="h-4 w-4" />
+                  <span>{booking.roomName} ({booking.status})</span>
+                </li>
+              ))}
+            </ul>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+  return format(day, "d");
+}
+
 
 export function Header() {
   const [date, setDate] = React.useState<Date>(new Date("2025-12-11"));
+  const bookings = React.useMemo(() => getBookings(), []);
+
+  const bookedDays = React.useMemo(() => {
+    const days: Date[] = [];
+    bookings.forEach(booking => {
+      const dayIterator = new Date(booking.checkIn);
+      while(dayIterator < booking.checkOut) {
+        days.push(new Date(dayIterator));
+        dayIterator.setDate(dayIterator.getDate() + 1);
+      }
+    });
+    return days;
+  }, [bookings]);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur sm:px-6">
@@ -64,6 +124,14 @@ export function Header() {
               selected={date}
               onSelect={(d) => d && setDate(d)}
               initialFocus
+              month={date}
+              modifiers={{ booked: bookedDays }}
+              modifiersClassNames={{
+                booked: "bg-primary/20 text-primary-foreground",
+              }}
+              components={{
+                Day: ({ date }) => <DayWithTooltip day={date} bookings={bookings} />,
+              }}
             />
           </PopoverContent>
         </Popover>
