@@ -15,7 +15,6 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Room } from '@/lib/data';
@@ -91,7 +90,7 @@ export function OverviewCards({ rooms }: { rooms: Room[] }) {
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
-          <Accordion type="multiple" defaultValue={['total']} className="w-full">
+          <Accordion type="multiple" className="w-full">
             
             {/* Total Rooms */}
             <AccordionItem value="total">
