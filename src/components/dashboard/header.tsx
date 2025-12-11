@@ -4,7 +4,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { format, isValid } from "date-fns";
+import { format, isValid, isSameDay } from "date-fns";
 import {
   BookText,
   Calendar as CalendarIcon,
@@ -36,50 +36,45 @@ import {
 import { Logo } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { getBookings } from "@/lib/data";
-import { DayProps } from "react-day-picker";
+import { DayProps, useDayPicker } from "react-day-picker";
 
-function DayWithTooltip(props: DayProps) {
-    const { date } = props;
-    const bookings = getBookings();
+function DayWithTooltip({ date, displayMonth }: DayProps) {
+  const { classNames, styles } = useDayPicker();
+  const bookings = getBookings();
 
-    if (!date || !isValid(date)) {
-        return <div className="rdp-day_hidden" />;
-    }
+  const dayBookings = bookings.filter(
+    (booking) => date >= booking.checkIn && date < booking.checkOut
+  );
 
-    const dayBookings = bookings.filter(
-        (booking) => date >= booking.checkIn && date < booking.checkOut
+  if (dayBookings.length > 0) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="relative flex h-full w-full items-center justify-center">
+              {format(date, "d")}
+              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <ul>
+              {dayBookings.map((booking, index) => (
+                <li key={index} className="flex items-center gap-2">
+                  <Bed className="h-4 w-4" />
+                  <span>
+                    {booking.roomName} ({booking.status})
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
+  }
 
-    if (dayBookings.length > 0) {
-        return (
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className="relative flex h-full w-full items-center justify-center">
-                            {format(date, "d")}
-                            <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <ul>
-                            {dayBookings.map((booking, index) => (
-                                <li key={index} className="flex items-center gap-2">
-                                    <Bed className="h-4 w-4" />
-                                    <span>
-                                        {booking.roomName} ({booking.status})
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-        );
-    }
-
-    return <div>{format(date, "d")}</div>;
+  return <>{format(date, "d")}</>;
 }
-
 
 export function Header() {
   const [date, setDate] = React.useState<Date>(new Date("2025-12-11"));
