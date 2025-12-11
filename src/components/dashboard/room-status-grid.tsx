@@ -50,9 +50,14 @@ function getRoomStatusForDate(room: Room, date: Date): Room['status'] {
   if (selectedDate >= checkInDate && selectedDate < checkOutDate) {
     return 'Occupied';
   }
+
+  // If the booking's check-in date is in the future relative to the selected date, it's "Booked".
+  if (checkInDate > selectedDate) {
+    return 'Booked';
+  }
   
-  // If not occupied, but booking exists, it's considered "Booked" for future/past dates
-  return 'Booked';
+  // If the booking is in the past, it should be considered Available for the selected date.
+  return 'Available';
 }
 
 export function RoomStatusGrid({
@@ -85,7 +90,7 @@ export function RoomStatusGrid({
 
     const updatedRoom: Room = {
       ...originalRoom,
-      status: 'Booked', // Set initial status, getRoomStatusForDate will determine effective status
+      status: 'Booked', // This status is now determined by getRoomStatusForDate
       booking: {
         guestName: values.guestName,
         checkIn: values.checkIn,
@@ -101,18 +106,21 @@ export function RoomStatusGrid({
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {rooms.map((room) => {
           const effectiveStatus = getRoomStatusForDate(room, selectedDate);
+          const canBook = effectiveStatus === 'Available';
+
           return (
             <RoomCard
               key={room.id}
               room={room}
               effectiveStatus={effectiveStatus}
               onButtonClick={() => {
-                if (effectiveStatus === 'Available') {
+                if (canBook) {
                   setRoomForBooking(room);
-                } else {
+                } else if (room.booking) { // Only allow management if there is a booking
                   setRoomForManagement(room);
                 }
               }}
+              canBook={canBook}
             />
           );
         })}
@@ -149,10 +157,12 @@ function RoomCard({
   room,
   effectiveStatus,
   onButtonClick,
+  canBook,
 }: {
   room: Room;
   effectiveStatus: Room['status'];
   onButtonClick: () => void;
+  canBook: boolean;
 }) {
   const config = statusConfig[effectiveStatus];
   const Icon = config.icon;
@@ -196,10 +206,10 @@ function RoomCard({
       <CardFooter>
         <Button
           className="w-full"
-          disabled={effectiveStatus !== 'Available' && !room.booking}
+          disabled={!canBook && !room.booking}
           onClick={onButtonClick}
         >
-          {effectiveStatus === 'Available' ? 'Book Now' : 'Manage'}
+          {canBook ? 'Book Now' : 'Manage'}
         </Button>
       </CardFooter>
     </Card>
