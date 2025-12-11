@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { format, isValid } from 'date-fns';
+import { format, isWithinInterval, isValid } from 'date-fns';
 import { Bed } from 'lucide-react';
-import { DayProps } from 'react-day-picker';
+import { DayProps, DayPicker } from 'react-day-picker';
 
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -12,7 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { getBookings } from '@/lib/data';
+import { getBookings, type Room } from '@/lib/data';
 import { Card, CardContent } from '../ui/card';
 
 type DashboardCalendarProps = {
@@ -20,19 +20,18 @@ type DashboardCalendarProps = {
   setSelectedDate: (date: Date) => void;
 };
 
-function DayWithTooltip({
-  date,
-  displayMonth,
-}: DayProps & { date: Date; displayMonth: Date }) {
+function DayWithTooltip(props: DayProps) {
+  const { date, displayMonth } = props;
   const bookings = getBookings();
+  
+  if (!date) {
+    return <div />;
+  }
+
   const dayBookings = bookings.filter(
     (booking) =>
-      isValid(date) &&
-      date >= booking.checkIn &&
-      date < booking.checkOut
+      isWithinInterval(date, { start: booking.checkIn, end: booking.checkOut })
   );
-
-  if (!displayMonth || !date) return <></>;
 
   if (date.getMonth() !== displayMonth.getMonth()) {
     return <div className="text-muted-foreground">{format(date, 'd')}</div>;
@@ -65,8 +64,9 @@ function DayWithTooltip({
     );
   }
 
-  return <>{format(date, 'd')}</>;
+  return <div>{format(date, 'd')}</div>;
 }
+
 
 export function DashboardCalendar({
   selectedDate,
@@ -100,13 +100,7 @@ export function DashboardCalendar({
             booked: 'bg-primary/20 text-primary-foreground',
           }}
           components={{
-            Day: (props) => (
-              <DayWithTooltip
-                {...props}
-                date={props.date}
-                displayMonth={props.displayMonth}
-              />
-            ),
+            Day: DayWithTooltip,
           }}
         />
       </CardContent>
