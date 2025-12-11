@@ -76,9 +76,9 @@ service cloud.firestore {
     match /hotels/{hotelId} {
       allow get: if isPublic();
       allow list: if isPublic();
-      allow create: if isPublic(); // Allow signed-in users
-      allow update: if isPublic(); // Allow signed-in users
-      allow delete: if isPublic(); // Allow signed-in users
+      allow create: if clientWritesDisabled(); 
+      allow update: if clientWritesDisabled();
+      allow delete: if clientWritesDisabled();
 
       /**
        * @description Controls access to Room subcollections.
