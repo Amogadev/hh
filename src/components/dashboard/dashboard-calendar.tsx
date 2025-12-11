@@ -1,122 +1,50 @@
 'use client';
 
 import * as React from 'react';
-import { format, isWithinInterval } from 'date-fns';
-import { Bed } from 'lucide-react';
-import { DayPicker, type DayProps } from 'react-day-picker';
-
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { getBookings } from '@/lib/data';
-import { Card, CardContent } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { format } from 'date-fns';
 
 type DashboardCalendarProps = {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
 };
 
-function DayWithTooltip(props: DayProps) {
-  const { date, displayMonth } = props;
-  const bookings = getBookings();
-  
-  if (!date || displayMonth.getMonth() !== date.getMonth()) {
-    return <td role="gridcell"></td>;
-  }
-
-  const dayBookings = bookings.filter(
-    (booking) =>
-      booking.checkIn &&
-      booking.checkOut &&
-      isWithinInterval(date, { start: booking.checkIn, end: booking.checkOut })
-  );
-
-  const dayContent = (
-    <div className="relative flex h-full w-full items-center justify-center">
-      {format(date, 'd')}
-      {dayBookings.length > 0 && (
-        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />
-      )}
-    </div>
-  );
-
-  if (dayBookings.length > 0) {
-    return (
-      <TooltipProvider delayDuration={0}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <td {...props.tdProps} className={props.className}>
-              {dayContent}
-            </td>
-          </TooltipTrigger>
-          <TooltipContent>
-            <ul>
-              {dayBookings.map((booking, index) => (
-                <li key={index} className="flex items-center gap-2">
-                  <Bed className="h-4 w-4" />
-                  <span>
-                    {booking.roomName} ({booking.status})
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
-
-  return <td {...props.tdProps} className={props.className}>{dayContent}</td>;
-}
-
-
 export function DashboardCalendar({
   selectedDate,
   setSelectedDate,
 }: DashboardCalendarProps) {
-  const bookings = React.useMemo(() => getBookings(), []);
-
-  const bookedDays = React.useMemo(() => {
-    const days: Date[] = [];
-    bookings.forEach((booking) => {
-      if (booking.checkIn && booking.checkOut) {
-        const dayIterator = new Date(booking.checkIn);
-        while (dayIterator < booking.checkOut) {
-          days.push(new Date(dayIterator));
-          dayIterator.setDate(dayIterator.getDate() + 1);
-        }
-      }
-    });
-    return days;
-  }, [bookings]);
-
-  const handleSelect = (date: Date | undefined) => {
-    if (date) {
-      setSelectedDate(date);
+  
+  const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const dateValue = event.target.value;
+    // The input type="date" returns a string in 'YYYY-MM-DD' format.
+    // The Date constructor can parse this, but it will be in UTC.
+    // To avoid timezone issues, we can append 'T00:00:00' to treat it as local time.
+    const newDate = new Date(`${dateValue}T00:00:00`);
+    if (!isNaN(newDate.getTime())) {
+      setSelectedDate(newDate);
     }
   };
 
   return (
     <Card>
-      <CardContent className="p-0">
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={handleSelect}
-          initialFocus
-          month={selectedDate}
-          modifiers={{ booked: bookedDays }}
-          modifiersClassNames={{
-            booked: 'bg-primary/20 text-primary-foreground',
-          }}
-          components={{
-            Day: DayWithTooltip,
-          }}
-        />
+       <CardHeader>
+        <CardTitle>Select Date</CardTitle>
+        <CardDescription>
+          Pick a date to view room status and revenue.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-2">
+            <Label htmlFor="date-picker">Date</Label>
+            <Input
+                id="date-picker"
+                type="date"
+                value={format(selectedDate, 'yyyy-MM-dd')}
+                onChange={handleDateChange}
+            />
+        </div>
       </CardContent>
     </Card>
   );
