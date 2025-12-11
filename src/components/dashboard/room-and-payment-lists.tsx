@@ -114,14 +114,12 @@ export function RoomAndPaymentLists({ rooms, onDeleteBooking }: RoomAndPaymentLi
                 <ul className="space-y-2">
                   {bookedRooms.map(room => (
                     <li key={room.id} className="flex justify-between items-center text-sm">
-                       <div>
-                        <span>{room.name}</span>
-                         <p className='text-xs text-muted-foreground'>
-                            {room.booking?.guestName} 
+                       <span>{room.name}</span>
+                       <div className="text-xs text-muted-foreground text-right">
+                         <p>{room.booking?.guestName}</p>
+                         <p>
+                           {room.booking && `In: ${format(getDateFromTimestampOrDate(room.booking.checkIn), 'MMM d')}`}
                          </p>
-                       </div>
-                       <div className="text-xs text-muted-foreground">
-                         {room.booking && `In: ${format(getDateFromTimestampOrDate(room.booking.checkIn), 'MMM d')}`}
                        </div>
                     </li>
                   ))}
