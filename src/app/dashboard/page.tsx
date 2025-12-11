@@ -146,7 +146,6 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <Button onClick={seedData} className="w-fit">Seed Room Data</Button>
       {roomsLoading && <p>Loading rooms...</p>}
       {!roomsLoading && (
         <>
