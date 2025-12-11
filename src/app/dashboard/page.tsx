@@ -1,8 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { DailyRevenue } from '@/components/dashboard/daily-revenue';
-import { RoomDetailCard } from '@/components/dashboard/room-detail-card';
+import { RoomAndPaymentLists } from '@/components/dashboard/room-and-payment-lists';
 import { DashboardCalendar } from '@/components/dashboard/dashboard-calendar';
 import { RoomStatus } from '@/components/dashboard/room-status';
 import { Room } from '@/lib/data';
@@ -34,17 +33,29 @@ function getRoomStatusForDate(room: Room, date: Date): Room['status'] {
   const checkOutDate = startOfDay(getDateFromTimestampOrDate(room.booking.checkOut));
   const selectedDate = startOfDay(date);
 
-  // A booking is 'Occupied' if the selected date is on or after check-in AND before check-out.
   if (selectedDate >= checkInDate && selectedDate < checkOutDate) {
     return 'Occupied';
   }
   
-  // A booking is 'Booked' for the future if the check-in date is after the selected date.
+  // A booking exists, but it's not for the selected date. Check if it's a future booking relative to the selected date.
   if (checkInDate > selectedDate) {
-    return 'Booked';
+    // This is a future booking, but for today's view, the room is available.
+    // The "Booked" status is more of a global state for the room if it has ANY future booking.
+    // For a specific date, it's either Occupied or Available.
+    // However, to meet the user requirement of seeing "Booked" rooms, we will show them in a separate list.
+    // For the purpose of coloring the card and its primary status for a given day, we need a clear rule.
+    // Let's stick to: if you can't check in yet, it's not occupied.
   }
 
-  // If neither of the above, the room is available for the selected date.
+  // To show "Booked" status correctly, we need to know if there's any booking at all.
+  // The logic in the parent component will handle this distinction.
+  // For this function, let's refine it:
+  if (selectedDate >= checkInDate && selectedDate < checkOutDate) {
+    return 'Occupied';
+  }
+
+  // If the room has a booking, but it's not for today, it is technically "Available" for today.
+  // The "Booked" status will be derived from the existence of a future booking.
   return 'Available';
 }
 
@@ -59,7 +70,7 @@ export default function DashboardPage() {
     return collection(firestore, 'hotels', HOTEL_ID, 'rooms');
   }, [firestore]);
 
-  const { data: firestoreRooms, isLoading: roomsLoading } = useCollection<Room>(roomsCollectionRef);
+  const { data: firestoreRooms, isLoading: roomsLoading } = useCollection<Room>(roomsCollectionref);
 
   const seedData = async () => {
     if (!firestore) return;
@@ -102,7 +113,8 @@ export default function DashboardPage() {
   
   const displayRooms = React.useMemo(() => {
     const firestoreRoomsMap = new Map(firestoreRooms?.map(room => [room.id, room]));
-    
+    const selectedDay = startOfDay(selectedDate);
+
     return baseRooms.map(baseRoom => {
       const firestoreRoomData = firestoreRoomsMap.get(baseRoom.id);
       const mergedRoom: Room = {
@@ -110,8 +122,23 @@ export default function DashboardPage() {
         status: 'Available', // Default status
         ...firestoreRoomData,
       };
-      // Dynamically calculate the status based on the selected date
-      mergedRoom.status = getRoomStatusForDate(mergedRoom, selectedDate);
+
+      // Determine the status based on the selected date
+      if (mergedRoom.booking) {
+        const checkIn = startOfDay(getDateFromTimestampOrDate(mergedRoom.booking.checkIn));
+        const checkOut = startOfDay(getDateFromTimestampOrDate(mergedRoom.booking.checkOut));
+        
+        if (selectedDay >= checkIn && selectedDay < checkOut) {
+          mergedRoom.status = 'Occupied';
+        } else if (checkIn > selectedDay) {
+          mergedRoom.status = 'Booked';
+        } else {
+          mergedRoom.status = 'Available';
+        }
+      } else {
+        mergedRoom.status = 'Available';
+      }
+
       return mergedRoom;
     });
   }, [firestoreRooms, selectedDate]);
@@ -123,23 +150,18 @@ export default function DashboardPage() {
       {roomsLoading && <p>Loading rooms...</p>}
       {!roomsLoading && (
         <>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="flex flex-col gap-6">
+          <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
+            <div className="flex flex-col gap-6 lg:col-span-1">
               <DashboardCalendar
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
               />
-              <RoomDetailCard rooms={displayRooms} />
+              <RoomAndPaymentLists rooms={displayRooms} onDeleteBooking={handleDeleteBooking} />
             </div>
-            <div className="lg:col-span-2">
-               <DailyRevenue
-                selectedDate={selectedDate}
-                rooms={displayRooms}
-                onDeleteBooking={handleDeleteBooking}
-              />
+            <div className="lg:col-span-3">
+               <RoomStatus selectedDate={selectedDate} rooms={displayRooms} onUpdateRoom={handleUpdateRoom} />
             </div>
           </div>
-          <RoomStatus selectedDate={selectedDate} rooms={displayRooms} onUpdateRoom={handleUpdateRoom} />
         </>
       )}
     </div>
