@@ -1,6 +1,8 @@
-"use client";
+'use client';
 
+import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Room } from "@/lib/data";
 import { Bed, BedDouble, CalendarCheck, DoorOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -46,24 +48,36 @@ export function OverviewCards({ rooms }: { rooms: Room[] }) {
   ];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Room Details</CardTitle>
-        <CardDescription>
-            A quick look at the current status of all rooms.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4 grid-cols-2">
-        {stats.map((stat) => (
-            <div key={stat.title} className="flex items-center gap-4">
-                <stat.icon className={cn("h-6 w-6", stat.color)} />
-                <div>
-                    <p className="text-sm text-muted-foreground">{stat.title}</p>
-                    <p className="text-lg font-bold">{stat.value}</p>
-                </div>
+    <Dialog>
+        <DialogTrigger asChild>
+            <Card className="cursor-pointer hover:bg-card/80">
+                <CardHeader>
+                    <CardTitle>Room Details</CardTitle>
+                    <CardDescription>
+                        Click to see an overview of room statistics.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+                <DialogTitle>Room Overview</DialogTitle>
+                <DialogDescription>
+                    A quick look at the current status of all rooms.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 grid-cols-2 py-4">
+                {stats.map((stat) => (
+                    <div key={stat.title} className="flex items-center gap-4 p-2 rounded-lg bg-card">
+                        <stat.icon className={cn("h-8 w-8", stat.color)} />
+                        <div>
+                            <p className="text-lg font-bold">{stat.value}</p>
+                            <p className="text-sm text-muted-foreground">{stat.title}</p>
+                        </div>
+                    </div>
+                ))}
             </div>
-        ))}
-      </CardContent>
-    </Card>
+        </DialogContent>
+    </Dialog>
   );
 }
