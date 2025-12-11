@@ -34,14 +34,17 @@ function getRoomStatusForDate(room: Room, date: Date): Room['status'] {
   const checkOutDate = startOfDay(getDateFromTimestampOrDate(room.booking.checkOut));
   const selectedDate = startOfDay(date);
 
+  // A booking is 'Occupied' if the selected date is on or after check-in AND before check-out.
   if (selectedDate >= checkInDate && selectedDate < checkOutDate) {
     return 'Occupied';
   }
   
+  // A booking is 'Booked' for the future if the check-in date is after the selected date.
   if (checkInDate > selectedDate) {
     return 'Booked';
   }
 
+  // If neither of the above, the room is available for the selected date.
   return 'Available';
 }
 
@@ -85,7 +88,6 @@ export default function DashboardPage() {
     if (!firestore) return;
     const roomRef = doc(firestore, 'hotels', HOTEL_ID, 'rooms', roomId);
     updateDocumentNonBlocking(roomRef, {
-      status: 'Available',
       booking: null,
       payment: null,
     });
@@ -130,7 +132,7 @@ export default function DashboardPage() {
               <RoomDetailCard rooms={displayRooms} />
             </div>
             <div className="lg:col-span-2">
-              <DailyRevenue
+               <DailyRevenue
                 selectedDate={selectedDate}
                 rooms={displayRooms}
                 onDeleteBooking={handleDeleteBooking}
