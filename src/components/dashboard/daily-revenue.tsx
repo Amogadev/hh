@@ -41,14 +41,14 @@ export function DailyRevenue({
 
 
   return (
-    <Card className="flex-1 flex flex-col">
+    <Card>
       <CardHeader>
-        <CardTitle>Daily Revenue</CardTitle>
+        <CardTitle>Payment Details</CardTitle>
         <CardDescription>
           Revenue and payment breakdown for the selected date.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6 flex-1 flex flex-col">
+      <CardContent className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
           <Card className="p-4 text-center">
             <DollarSign className="mx-auto h-6 w-6 text-muted-foreground" />
@@ -61,7 +61,7 @@ export function DailyRevenue({
             <p className="text-2xl font-bold">₹{totalBookedAmount.toFixed(2)}</p>
           </Card>
         </div>
-        <div className="space-y-2 flex-1 flex flex-col">
+        <div className="space-y-2">
           <h3 className="font-semibold">Payment Breakdown</h3>
           {dailyBookedRooms.length > 0 ? (
             <ul className="space-y-2">

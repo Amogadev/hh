@@ -129,7 +129,7 @@ export default function DashboardPage() {
               />
               <RoomDetailCard rooms={displayRooms} />
             </div>
-            <div className="lg:col-span-2 flex flex-col">
+            <div className="lg:col-span-2">
               <DailyRevenue
                 selectedDate={selectedDate}
                 rooms={displayRooms}
