@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { addDays } from 'date-fns';
+import { addDays, differenceInCalendarDays } from 'date-fns';
 import type { Room } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
@@ -61,6 +61,8 @@ type BookingFormProps = {
   onBookingSuccess: (roomId: string, values: BookingFormValues) => void;
 };
 
+const PRICE_PER_NIGHT = 800;
+
 export function BookingForm({
   room,
   isOpen,
@@ -77,14 +79,28 @@ export function BookingForm({
       checkIn: new Date(),
       checkOut: addDays(new Date(), 1),
       paymentMethod: 'Credit Card',
-      totalAmount: 800,
+      totalAmount: PRICE_PER_NIGHT,
       advancePayment: 0,
     },
   });
 
+  const checkIn = form.watch('checkIn');
+  const checkOut = form.watch('checkOut');
   const totalAmount = form.watch('totalAmount');
   const advancePayment = form.watch('advancePayment');
   const pendingPayment = totalAmount - advancePayment;
+
+  React.useEffect(() => {
+    if (checkIn && checkOut && checkOut > checkIn) {
+      const numberOfNights = differenceInCalendarDays(checkOut, checkIn);
+      const newTotalAmount = numberOfNights * PRICE_PER_NIGHT;
+      form.setValue('totalAmount', newTotalAmount, { shouldValidate: true });
+    } else {
+        // If dates are invalid or same day, default to one night price
+        form.setValue('totalAmount', PRICE_PER_NIGHT, { shouldValidate: true });
+    }
+  }, [checkIn, checkOut, form]);
+
 
   async function onSubmit(values: BookingFormValues) {
     setIsLoading(true);
