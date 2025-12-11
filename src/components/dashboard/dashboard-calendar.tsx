@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { format, isWithinInterval, isValid } from 'date-fns';
+import { format, isWithinInterval } from 'date-fns';
 import { Bed } from 'lucide-react';
 import { DayProps, DayPicker } from 'react-day-picker';
 
@@ -12,7 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { getBookings, type Room } from '@/lib/data';
+import { getBookings } from '@/lib/data';
 import { Card, CardContent } from '../ui/card';
 
 type DashboardCalendarProps = {
@@ -24,28 +24,28 @@ function DayWithTooltip(props: DayProps) {
   const { date, displayMonth } = props;
   const bookings = getBookings();
   
-  if (!date) {
+  const dayBookings = bookings.filter(
+    (booking) =>
+      date && isWithinInterval(date, { start: booking.checkIn, end: booking.checkOut })
+  );
+
+  if (!date || date.getMonth() !== displayMonth.getMonth()) {
     return <div />;
   }
 
-  const dayBookings = bookings.filter(
-    (booking) =>
-      isWithinInterval(date, { start: booking.checkIn, end: booking.checkOut })
+  const dayContent = (
+    <div className="relative flex h-full w-full items-center justify-center">
+      {format(date, 'd')}
+      {dayBookings.length > 0 && <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />}
+    </div>
   );
-
-  if (date.getMonth() !== displayMonth.getMonth()) {
-    return <div className="text-muted-foreground">{format(date, 'd')}</div>;
-  }
 
   if (dayBookings.length > 0) {
     return (
-      <TooltipProvider>
+      <TooltipProvider delayDuration={0}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="relative flex h-full w-full items-center justify-center">
-              {format(date, 'd')}
-              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />
-            </div>
+            {dayContent}
           </TooltipTrigger>
           <TooltipContent>
             <ul>
@@ -67,7 +67,6 @@ function DayWithTooltip(props: DayProps) {
   return <div>{format(date, 'd')}</div>;
 }
 
-
 export function DashboardCalendar({
   selectedDate,
   setSelectedDate,
@@ -86,13 +85,19 @@ export function DashboardCalendar({
     return days;
   }, [bookings]);
 
+  const handleSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date);
+    }
+  };
+
   return (
     <Card>
       <CardContent className="p-0">
         <Calendar
           mode="single"
           selected={selectedDate}
-          onSelect={(d) => d && isValid(d) && setSelectedDate(d)}
+          onSelect={handleSelect}
           initialFocus
           month={selectedDate}
           modifiers={{ booked: bookedDays }}
