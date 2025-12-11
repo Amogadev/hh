@@ -70,7 +70,7 @@ export default function DashboardPage() {
     return collection(firestore, 'hotels', HOTEL_ID, 'rooms');
   }, [firestore]);
 
-  const { data: firestoreRooms, isLoading: roomsLoading } = useCollection<Room>(roomsCollectionref);
+  const { data: firestoreRooms, isLoading: roomsLoading } = useCollection<Room>(roomsCollectionRef);
 
   const seedData = async () => {
     if (!firestore) return;
