@@ -1,10 +1,9 @@
-
 'use client';
 
 import * as React from 'react';
 import { format, isWithinInterval } from 'date-fns';
 import { Bed } from 'lucide-react';
-import { DayProps, DayPicker } from 'react-day-picker';
+import { DayPicker, type DayProps } from 'react-day-picker';
 
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -25,19 +24,23 @@ function DayWithTooltip(props: DayProps) {
   const { date, displayMonth } = props;
   const bookings = getBookings();
   
-  if (!date || !displayMonth || date.getMonth() !== displayMonth.getMonth()) {
-    return <td />;
+  if (!date || displayMonth.getMonth() !== date.getMonth()) {
+    return <td role="gridcell"></td>;
   }
 
   const dayBookings = bookings.filter(
     (booking) =>
-      booking.checkIn && booking.checkOut && isWithinInterval(date, { start: booking.checkIn, end: booking.checkOut })
+      booking.checkIn &&
+      booking.checkOut &&
+      isWithinInterval(date, { start: booking.checkIn, end: booking.checkOut })
   );
 
   const dayContent = (
     <div className="relative flex h-full w-full items-center justify-center">
       {format(date, 'd')}
-      {dayBookings.length > 0 && <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />}
+      {dayBookings.length > 0 && (
+        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />
+      )}
     </div>
   );
 
@@ -47,7 +50,7 @@ function DayWithTooltip(props: DayProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <td {...props.tdProps} className={props.className}>
-                {dayContent}
+              {dayContent}
             </td>
           </TooltipTrigger>
           <TooltipContent>
@@ -67,7 +70,7 @@ function DayWithTooltip(props: DayProps) {
     );
   }
 
-  return <td {...props.tdProps} className={props.className}>{format(date, 'd')}</td>;
+  return <td {...props.tdProps} className={props.className}>{dayContent}</td>;
 }
 
 
