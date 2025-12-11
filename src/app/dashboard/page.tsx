@@ -37,7 +37,7 @@ function getRoomStatusForDate(room: Room, date: Date): Room['status'] {
   if (selectedDate >= checkInDate && selectedDate < checkOutDate) {
     return 'Occupied';
   }
-
+  
   if (checkInDate > selectedDate) {
     return 'Booked';
   }
@@ -129,7 +129,7 @@ export default function DashboardPage() {
               />
               <RoomDetailCard rooms={displayRooms} />
             </div>
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 flex flex-col">
               <DailyRevenue
                 selectedDate={selectedDate}
                 rooms={displayRooms}
