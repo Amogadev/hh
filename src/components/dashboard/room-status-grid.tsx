@@ -12,7 +12,7 @@ import type { Room, Payment } from '@/lib/data';
 import { Bed, User, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { format, isWithinInterval, isToday } from 'date-fns';
+import { format, isWithinInterval, isEqual } from 'date-fns';
 import { BookingForm } from './booking-form';
 
 const statusConfig = {
@@ -37,30 +37,25 @@ function getRoomStatusForDate(room: Room, date: Date): Room['status'] {
   if (!room.booking) return 'Available';
 
   const { checkIn, checkOut } = room.booking;
+  
+  // Normalize dates to midnight for accurate comparisons
+  const selectedDate = new Date(date);
+  selectedDate.setHours(0, 0, 0, 0);
+
   const checkInDate = new Date(checkIn);
+  checkInDate.setHours(0, 0, 0, 0);
+  
   const checkOutDate = new Date(checkOut);
-  
-  // Normalize dates to remove time component for accurate comparison
-  const normalizedDate = new Date(date);
-  normalizedDate.setHours(0, 0, 0, 0);
+  checkOutDate.setHours(0, 0, 0, 0);
 
-  const normalizedCheckIn = new Date(checkInDate);
-  normalizedCheckIn.setHours(0, 0, 0, 0);
-  
-  const normalizedCheckOut = new Date(checkOutDate);
-  normalizedCheckOut.setHours(0, 0, 0, 0);
+  // A room is occupied if the selected date is on or after check-in, but before check-out.
+  if (selectedDate >= checkInDate && selectedDate < checkOutDate) {
+    return 'Occupied';
+  }
 
-  const isWithin = isWithinInterval(normalizedDate, {
-    start: normalizedCheckIn,
-    // isWithinInterval is exclusive of the end date, so we don't subtract a day
-    end: normalizedCheckOut,
-  });
-
-  if (isWithin) {
-    // If the selected date is the same as the check-in date, it's Occupied.
-    if (normalizedDate.getTime() >= normalizedCheckIn.getTime()) {
-      return 'Occupied';
-    }
+  // A room is booked if it's not occupied on the selected date, but a booking exists.
+  // This covers future bookings.
+  if (checkInDate > selectedDate) {
     return 'Booked';
   }
 
@@ -109,7 +104,7 @@ export function RoomStatusGrid({
 
     const updatedRoom: Room = {
       ...originalRoom,
-      status: 'Booked', // Set status to booked initially
+      status: getRoomStatusForDate({ booking: values } as Room, selectedDate),
       booking: {
         guestName: values.guestName,
         checkIn: values.checkIn,
