@@ -40,8 +40,16 @@ function getRoomStatusForDate(room: Room, date: Date): Room['status'] {
   const normalizedDate = new Date(date);
   normalizedDate.setHours(0,0,0,0);
   
-  if (isWithinInterval(normalizedDate, { start: checkIn, end: checkOut })) {
-    return room.status === 'Available' ? 'Booked' : room.status;
+  const isBooked = isWithinInterval(normalizedDate, { start: new Date(checkIn), end: new Date(checkOut) });
+
+  if (isBooked) {
+    // If today is the check-in date, it's occupied.
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (new Date(checkIn).getTime() === today.getTime()) {
+      return 'Occupied';
+    }
+    return 'Booked';
   }
 
   return 'Available';
@@ -63,7 +71,7 @@ export function RoomStatusGrid({
 }: {
   selectedDate: Date;
   rooms: Room[];
-  onUpdateRoom: (roomId: string, newBookingData: Room) => void;
+  onUpdateRoom: (updatedRoom: Room) => void;
 }) {
   const [selectedRoom, setSelectedRoom] = React.useState<Room | null>(null);
 
@@ -78,9 +86,17 @@ export function RoomStatusGrid({
         method: values.paymentMethod,
     };
 
+    const originalRoom = rooms.find(r => r.id === roomId);
+    if (!originalRoom) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkInDate = new Date(values.checkIn);
+    checkInDate.setHours(0,0,0,0);
+
     const updatedRoom: Room = {
-      ...rooms.find(r => r.id === roomId)!,
-      status: 'Booked',
+      ...originalRoom,
+      status: checkInDate.getTime() === today.getTime() ? 'Occupied' : 'Booked',
       booking: {
         guestName: values.guestName,
         checkIn: values.checkIn,
@@ -88,7 +104,7 @@ export function RoomStatusGrid({
       },
       payment: newPayment
     };
-    onUpdateRoom(roomId, updatedRoom);
+    onUpdateRoom(updatedRoom);
   };
   
   return (
@@ -162,8 +178,8 @@ function RoomCard({
                 </p>
                 <p className="text-muted-foreground flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
-                  {format(room.booking.checkIn, 'MMM d')} -{' '}
-                  {format(room.booking.checkOut, 'MMM d')}
+                  {format(new Date(room.booking.checkIn), 'MMM d')} -{' '}
+                  {format(new Date(room.booking.checkOut), 'MMM d')}
                 </p>
               </>
             )}

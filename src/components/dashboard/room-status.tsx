@@ -12,7 +12,7 @@ import type { Room } from '@/lib/data';
 type RoomStatusProps = {
   selectedDate: Date;
   rooms: Room[];
-  onUpdateRoom: (roomId: string, newBookingData: Room) => void;
+  onUpdateRoom: (updatedRoom: Room) => void;
 };
 
 export function RoomStatus({ selectedDate, rooms, onUpdateRoom }: RoomStatusProps) {

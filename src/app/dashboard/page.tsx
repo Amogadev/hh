@@ -28,8 +28,8 @@ export default function DashboardPage() {
     );
   };
   
-  const handleUpdateRoom = (roomId: string, newBookingData: Room) => {
-    setRooms(prevRooms => prevRooms.map(r => r.id === roomId ? newBookingData : r));
+  const handleUpdateRoom = (updatedRoom: Room) => {
+    setRooms(prevRooms => prevRooms.map(r => r.id === updatedRoom.id ? updatedRoom : r));
   };
 
 
