@@ -9,6 +9,7 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, writeBatch, getDocs, Timestamp } from 'firebase/firestore';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { startOfDay, isWithinInterval } from 'date-fns';
+import { OverviewCards } from '@/components/dashboard/overview-cards';
 
 const HOTEL_ID = 'hotel-123';
 const baseRooms: Omit<Room, 'status' | 'effectiveStatus'>[] = [
@@ -127,6 +128,7 @@ export default function DashboardPage() {
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
               />
+              <OverviewCards rooms={displayRooms} />
               <RoomAndPaymentLists rooms={displayRooms} onDeleteBooking={handleDeleteBooking} />
             </div>
             <div className="lg:col-span-3">
