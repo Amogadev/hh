@@ -152,11 +152,11 @@ export default function DashboardPage() {
                 />
             </div>
             <div className="space-y-6">
+                <OverviewCards rooms={displayRooms} />
                 <DashboardCalendar
                     selectedDate={selectedDate}
                     setSelectedDate={setSelectedDate}
                 />
-                <OverviewCards rooms={displayRooms} />
                 <RoomAndPaymentLists
                     rooms={displayRooms}
                     onDeleteBooking={handleDeleteBooking}
