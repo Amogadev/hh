@@ -115,7 +115,7 @@ export function DashboardCalendar({
           components={{
             Day: DayWithTooltip,
           }}
-        </Calendar>
+        />
       </CardContent>
     </Card>
   );
