@@ -1,9 +1,10 @@
 
+
 "use client";
 
 import * as React from "react";
 import Link from "next/link";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import {
   BookText,
   Calendar as CalendarIcon,
@@ -42,6 +43,10 @@ type DayWithTooltipProps = {
 };
 
 function DayWithTooltip({ day, bookings }: DayWithTooltipProps) {
+  if (!isValid(day)) {
+    return null;
+  }
+
   const dayBookings = bookings.filter(
     (booking) =>
       day >= booking.checkIn && day < booking.checkOut
