@@ -6,14 +6,14 @@ import { Logo } from "@/components/icons";
 
 export default function LoginPage() {
   const loginImage = PlaceHolderImages.find(
-    (image) => image.id === "login-background-dark"
+    (image) => image.id === "login-background"
   );
 
   return (
     <div className="relative w-full h-screen flex items-center justify-center">
       <Image
         src={loginImage?.imageUrl || "/placeholder.svg"}
-        alt={loginImage?.description || "Hotel Pool"}
+        alt={loginImage?.description || "Hotel Lobby"}
         data-ai-hint={loginImage?.imageHint}
         fill
         className="object-cover"
