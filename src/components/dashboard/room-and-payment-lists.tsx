@@ -118,8 +118,10 @@ export function RoomAndPaymentLists({ rooms, onDeleteBooking }: RoomAndPaymentLi
                         <span>{room.name}</span>
                          <p className='text-xs text-muted-foreground'>
                             {room.booking?.guestName} 
-                            {room.booking && ` (In: ${format(getDateFromTimestampOrDate(room.booking.checkIn), 'MMM d')})`}
                          </p>
+                       </div>
+                       <div className="text-xs text-muted-foreground">
+                         {room.booking && `In: ${format(getDateFromTimestampOrDate(room.booking.checkIn), 'MMM d')}`}
                        </div>
                     </li>
                   ))}
