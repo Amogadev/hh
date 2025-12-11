@@ -40,6 +40,7 @@ import { format, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { Room } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
 
 const bookingFormSchema = z
   .object({
