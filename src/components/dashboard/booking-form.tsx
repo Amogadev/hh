@@ -85,7 +85,7 @@ export function BookingForm({
       checkIn: new Date(),
       checkOut: addDays(new Date(), 1),
       paymentMethod: 'Credit Card',
-      totalAmount: 100,
+      totalAmount: 800,
       advancePayment: 0,
     },
   });
@@ -204,7 +204,7 @@ export function BookingForm({
                         <FormItem>
                         <FormLabel>Total Amount</FormLabel>
                         <FormControl>
-                            <Input type="number" placeholder="100.00" {...field} />
+                            <Input type="number" placeholder="800.00" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -226,7 +226,7 @@ export function BookingForm({
             </div>
             <div>
                 <Label>Pending Payment</Label>
-                <Input value={`$${pendingPayment.toFixed(2)}`} readOnly className="mt-1 font-semibold text-lg" />
+                <Input value={`₹${pendingPayment.toFixed(2)}`} readOnly className="mt-1 font-semibold text-lg" />
             </div>
 
             <DialogFooter>
