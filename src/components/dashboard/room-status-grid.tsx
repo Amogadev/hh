@@ -90,11 +90,11 @@ export function RoomStatusGrid({
 
     const updatedRoom: Room = {
       ...originalRoom,
-      status: 'Booked', // This status is now determined by getRoomStatusForDate
+      status: 'Booked', // This status is just a default, effective status is calculated
       booking: {
         guestName: values.guestName,
-        checkIn: values.checkIn,
-        checkOut: values.checkOut,
+        checkIn: Timestamp.fromDate(values.checkIn),
+        checkOut: Timestamp.fromDate(values.checkOut),
       },
       payment: newPayment
     };
