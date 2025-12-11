@@ -1,8 +1,18 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RoomStatusGrid } from "./room-status-grid";
+'use client';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { RoomStatusGrid } from './room-status-grid';
 
+type RoomStatusProps = {
+  selectedDate: Date;
+};
 
-export function RoomStatus() {
+export function RoomStatus({ selectedDate }: RoomStatusProps) {
   return (
     <Card>
       <CardHeader>
@@ -12,7 +22,7 @@ export function RoomStatus() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <RoomStatusGrid />
+        <RoomStatusGrid selectedDate={selectedDate} />
       </CardContent>
     </Card>
   );
