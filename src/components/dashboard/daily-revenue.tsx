@@ -55,7 +55,7 @@ export function DailyRevenue({
           <Card className="p-4 text-center">
             <DollarSign className="mx-auto h-6 w-6 text-muted-foreground" />
             <p className="text-sm text-muted-foreground mt-1">Total Income</p>
-            <p className="text-2xl font-bold">${dailyRevenue.toFixed(2)}</p>
+            <p className="text-2xl font-bold">₹{dailyRevenue.toFixed(2)}</p>
           </Card>
           <Card className="p-4 text-center">
             <Wallet className="mx-auto h-6 w-6 text-muted-foreground" />
@@ -81,7 +81,7 @@ export function DailyRevenue({
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">
-                        ${room.payment.amount.toFixed(2)} ({room.payment.method})
+                        ₹{room.payment.amount.toFixed(2)} ({room.payment.method})
                       </span>
                       <Button
                         variant="ghost"

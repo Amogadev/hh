@@ -17,6 +17,8 @@ export type Payment = {
   guestName: string;
   date: string;
   amount: number;
+  advancePaid: number;
+  pending: number;
   status: 'Paid' | 'Pending' | 'Failed';
   method: 'Credit Card' | 'Cash' | 'Bank Transfer' | 'GPay' | 'PhonePe';
 };
@@ -24,12 +26,12 @@ export type Payment = {
 const today = new Date("2025-12-11");
 
 export const paymentsData: Payment[] = [
-  { invoiceId: 'INV001', guestName: 'John Doe', date: '2024-07-20', amount: 350.00, status: 'Paid', method: 'Credit Card' },
-  { invoiceId: 'INV002', guestName: 'Jane Smith', date: '2024-07-19', amount: 720.50, status: 'Paid', method: 'Credit Card' },
-  { invoiceId: 'INV003', guestName: 'Mike Johnson', date: '2024-07-19', amount: 150.00, status: 'Pending', method: 'Cash' },
-  { invoiceId: 'INV004', guestName: 'Emily Davis', date: '2024-07-18', amount: 480.75, status: 'Paid', method: 'Bank Transfer' },
-  { invoiceId: 'INV005', guestName: 'Robert Brown', date: '2024-07-17', amount: 200.00, status: 'Failed', method: 'Credit Card' },
-  { invoiceId: 'INV006', guestName: 'Linda Wilson', date: '2024-07-16', amount: 950.00, status: 'Paid', method: 'Cash' },
+  { invoiceId: 'INV001', guestName: 'John Doe', date: '2024-07-20', amount: 350.00, advancePaid: 100, pending: 250, status: 'Pending', method: 'Credit Card' },
+  { invoiceId: 'INV002', guestName: 'Jane Smith', date: '2024-07-19', amount: 720.50, advancePaid: 720.50, pending: 0, status: 'Paid', method: 'Credit Card' },
+  { invoiceId: 'INV003', guestName: 'Mike Johnson', date: '2024-07-19', amount: 150.00, advancePaid: 0, pending: 150, status: 'Pending', method: 'Cash' },
+  { invoiceId: 'INV004', guestName: 'Emily Davis', date: '2024-07-18', amount: 480.75, advancePaid: 480.75, pending: 0, status: 'Paid', method: 'Bank Transfer' },
+  { invoiceId: 'INV005', guestName: 'Robert Brown', date: '2024-07-17', amount: 200.00, advancePaid: 50, pending: 150, status: 'Failed', method: 'Credit Card' },
+  { invoiceId: 'INV006', guestName: 'Linda Wilson', date: '2024-07-16', amount: 950.00, advancePaid: 950.00, pending: 0, status: 'Paid', method: 'Cash' },
 ];
 
 export const roomsData: Room[] = [

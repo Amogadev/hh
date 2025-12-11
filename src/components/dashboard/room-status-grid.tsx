@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { format, isWithinInterval, isEqual } from 'date-fns';
 import { BookingForm } from './booking-form';
+import { ManageBookingForm } from './manage-booking-form';
 
 const statusConfig = {
   Available: {
@@ -37,29 +38,22 @@ function getRoomStatusForDate(room: Room, date: Date): Room['status'] {
   if (!room.booking) return 'Available';
 
   const { checkIn, checkOut } = room.booking;
-  
-  // Normalize dates to midnight for accurate comparisons
+
   const selectedDate = new Date(date);
   selectedDate.setHours(0, 0, 0, 0);
 
   const checkInDate = new Date(checkIn);
   checkInDate.setHours(0, 0, 0, 0);
-  
+
   const checkOutDate = new Date(checkOut);
   checkOutDate.setHours(0, 0, 0, 0);
 
-  // A room is occupied if the selected date is on or after check-in, but before check-out.
   if (selectedDate >= checkInDate && selectedDate < checkOutDate) {
     return 'Occupied';
   }
-
-  // A room is booked if it's not occupied on the selected date, but a booking exists.
-  // This covers future bookings.
-  if (checkInDate > selectedDate) {
-    return 'Booked';
-  }
-
-  return 'Available';
+  
+  // This covers future and past bookings.
+  return 'Booked';
 }
 
 
@@ -81,7 +75,9 @@ export function RoomStatusGrid({
   rooms: Room[];
   onUpdateRoom: (updatedRoom: Room) => void;
 }) {
-  const [selectedRoom, setSelectedRoom] = React.useState<Room | null>(null);
+  const [roomForBooking, setRoomForBooking] = React.useState<Room | null>(null);
+  const [roomForManagement, setRoomForManagement] = React.useState<Room | null>(null);
+
 
   const handleBookingSuccess = (roomId: string, values: BookingData) => {
     const pendingAmount = values.totalAmount - values.advancePayment;
@@ -90,6 +86,8 @@ export function RoomStatusGrid({
         guestName: values.guestName,
         date: format(new Date(), 'yyyy-MM-dd'),
         amount: values.totalAmount,
+        advancePaid: values.advancePayment,
+        pending: pendingAmount,
         status: pendingAmount > 0 ? 'Pending' : 'Paid',
         method: values.paymentMethod,
     };
@@ -97,14 +95,9 @@ export function RoomStatusGrid({
     const originalRoom = rooms.find(r => r.id === roomId);
     if (!originalRoom) return;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const checkInDate = new Date(values.checkIn);
-    checkInDate.setHours(0,0,0,0);
-
     const updatedRoom: Room = {
       ...originalRoom,
-      status: getRoomStatusForDate({ booking: values } as Room, selectedDate),
+      status: 'Booked',
       booking: {
         guestName: values.guestName,
         checkIn: values.checkIn,
@@ -125,21 +118,39 @@ export function RoomStatusGrid({
               key={room.id}
               room={room}
               effectiveStatus={status}
-              onBookNow={() => setSelectedRoom(room)}
+              onButtonClick={() => {
+                if (status === 'Available') {
+                  setRoomForBooking(room);
+                } else {
+                  setRoomForManagement(room);
+                }
+              }}
             />
           );
         })}
       </div>
-      {selectedRoom && (
+      {roomForBooking && (
         <BookingForm
-          room={selectedRoom}
-          isOpen={!!selectedRoom}
+          room={roomForBooking}
+          isOpen={!!roomForBooking}
           onOpenChange={(isOpen) => {
             if (!isOpen) {
-              setSelectedRoom(null);
+              setRoomForBooking(null);
             }
           }}
           onBookingSuccess={handleBookingSuccess}
+        />
+      )}
+      {roomForManagement && (
+         <ManageBookingForm
+          room={roomForManagement}
+          isOpen={!!roomForManagement}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setRoomForManagement(null);
+            }
+          }}
+          onUpdateRoom={onUpdateRoom}
         />
       )}
     </>
@@ -149,11 +160,11 @@ export function RoomStatusGrid({
 function RoomCard({
   room,
   effectiveStatus,
-  onBookNow,
+  onButtonClick,
 }: {
   room: Room;
   effectiveStatus: Room['status'];
-  onBookNow: () => void;
+  onButtonClick: () => void;
 }) {
   const config = statusConfig[effectiveStatus];
   const Icon = config.icon;
@@ -197,8 +208,8 @@ function RoomCard({
       <CardFooter>
         <Button
           className="w-full"
-          disabled={effectiveStatus !== 'Available'}
-          onClick={onBookNow}
+          disabled={effectiveStatus !== 'Available' && !room.booking}
+          onClick={onButtonClick}
         >
           {effectiveStatus === 'Available' ? 'Book Now' : 'Manage'}
         </Button>

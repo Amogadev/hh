@@ -29,15 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import { format, addDays } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { addDays } from 'date-fns';
 import type { Room } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
@@ -147,7 +139,8 @@ export function BookingForm({
                       <Input 
                         type="date" 
                         {...field}
-                        value={field.value instanceof Date ? format(field.value, 'yyyy-MM-dd') : field.value}
+                        value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
+                        onChange={(e) => field.onChange(new Date(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -164,7 +157,8 @@ export function BookingForm({
                       <Input 
                         type="date" 
                         {...field} 
-                        value={field.value instanceof Date ? format(field.value, 'yyyy-MM-dd') : field.value}
+                        value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
+                        onChange={(e) => field.onChange(new Date(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
