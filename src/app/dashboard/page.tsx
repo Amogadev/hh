@@ -5,22 +5,46 @@ import { DailyRevenue } from '@/components/dashboard/daily-revenue';
 import { RoomDetailCard } from '@/components/dashboard/room-detail-card';
 import { DashboardCalendar } from '@/components/dashboard/dashboard-calendar';
 import { RoomStatus } from '@/components/dashboard/room-status';
-import { Room, roomsData } from '@/lib/data';
+import { Room } from '@/lib/data';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc, setDoc, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, doc, writeBatch, getDocs } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { serverTimestamp } from 'firebase/firestore';
+import { Timestamp } from 'firebase/firestore';
+import { startOfDay } from 'date-fns';
 
 const HOTEL_ID = 'hotel-123';
-const baseRooms: Room[] = [
-  { id: '101', name: 'Room 101', status: 'Available' },
-  { id: '102', name: 'Room 102', status: 'Available' },
-  { id: '103', name: 'Room 103', status: 'Available' },
-  { id: '104', name: 'Room 104', status: 'Available' },
-  { id: '105', name: 'Room 105', status: 'Available' },
-  { id: '106', name: 'Room 106', status: 'Available' },
+const baseRooms: Omit<Room, 'status'>[] = [
+  { id: '101', name: 'Room 101' },
+  { id: '102', name: 'Room 102' },
+  { id: '103', name: 'Room 103' },
+  { id: '104', name: 'Room 104' },
+  { id: '105', name: 'Room 105' },
+  { id: '106', name: 'Room 106' },
 ];
+
+function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
+    return date instanceof Timestamp ? date.toDate() : date;
+}
+
+function getRoomStatusForDate(room: Room, date: Date): Room['status'] {
+  if (!room.booking) return 'Available';
+
+  const checkInDate = startOfDay(getDateFromTimestampOrDate(room.booking.checkIn));
+  const checkOutDate = startOfDay(getDateFromTimestampOrDate(room.booking.checkOut));
+  const selectedDate = startOfDay(date);
+
+  if (selectedDate >= checkInDate && selectedDate < checkOutDate) {
+    return 'Occupied';
+  }
+
+  if (checkInDate > selectedDate) {
+    return 'Booked';
+  }
+
+  return 'Available';
+}
+
 
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = React.useState<Date>(
@@ -60,7 +84,6 @@ export default function DashboardPage() {
   const handleDeleteBooking = (roomId: string) => {
     if (!firestore) return;
     const roomRef = doc(firestore, 'hotels', HOTEL_ID, 'rooms', roomId);
-    // This is a "soft" delete, just clearing booking info
     updateDocumentNonBlocking(roomRef, {
       status: 'Available',
       booking: null,
@@ -68,22 +91,28 @@ export default function DashboardPage() {
     });
   };
   
-  const handleUpdateRoom = (updatedRoom: Room) => {
+  const handleUpdateRoom = (updatedRoom: Partial<Room> & { id: string }) => {
     if (!firestore) return;
     const roomRef = doc(firestore, 'hotels', HOTEL_ID, 'rooms', updatedRoom.id);
-    const { id, ...roomData } = updatedRoom; // Exclude id from the data to be set
+    const { id, ...roomData } = updatedRoom;
     updateDocumentNonBlocking(roomRef, roomData);
   };
   
   const displayRooms = React.useMemo(() => {
-    if (!firestoreRooms) {
-      return baseRooms;
-    }
-    const firestoreRoomsMap = new Map(firestoreRooms.map(room => [room.id, room]));
+    const firestoreRoomsMap = new Map(firestoreRooms?.map(room => [room.id, room]));
+    
     return baseRooms.map(baseRoom => {
-      return firestoreRoomsMap.get(baseRoom.id) || baseRoom;
+      const firestoreRoomData = firestoreRoomsMap.get(baseRoom.id);
+      const mergedRoom: Room = {
+        ...baseRoom,
+        status: 'Available', // Default status
+        ...firestoreRoomData,
+      };
+      // Dynamically calculate the status based on the selected date
+      mergedRoom.status = getRoomStatusForDate(mergedRoom, selectedDate);
+      return mergedRoom;
     });
-  }, [firestoreRooms]);
+  }, [firestoreRooms, selectedDate]);
 
 
   return (

@@ -38,7 +38,7 @@ type ManageBookingFormProps = {
   room: Room;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onUpdateRoom: (updatedRoom: Room) => void;
+  onUpdateRoom: (updatedRoom: Partial<Room> & { id: string }) => void;
 };
 
 function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
@@ -91,8 +91,8 @@ export function ManageBookingForm({
         status: newPending <= 0 ? 'Paid' : 'Pending',
     };
 
-    const updatedRoom: Room = {
-        ...room,
+    const updatedRoom: Partial<Room> & { id: string } = {
+        id: room.id,
         payment: updatedPayment,
     };
     

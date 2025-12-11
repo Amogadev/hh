@@ -10,8 +10,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { DollarSign, Trash2, Wallet } from 'lucide-react';
 import type { Room } from '@/lib/data';
-import { startOfDay } from 'date-fns';
-import { Timestamp } from 'firebase/firestore';
 
 type DailyRevenueProps = {
   selectedDate: Date;
@@ -19,23 +17,15 @@ type DailyRevenueProps = {
   onDeleteBooking: (roomId: string) => void;
 };
 
-function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
-    return date instanceof Timestamp ? date.toDate() : date;
-}
-
 export function DailyRevenue({
   selectedDate,
   rooms,
   onDeleteBooking,
 }: DailyRevenueProps) {
-  const dailyBookedRooms = rooms.filter((room) => {
-    if (!room.booking) return false;
-    const checkIn = startOfDay(getDateFromTimestampOrDate(room.booking.checkIn));
-    const checkOut = startOfDay(getDateFromTimestampOrDate(room.booking.checkOut));
-    const current = startOfDay(selectedDate);
-    // A room is relevant for today if today is between check-in (inclusive) and check-out (exclusive)
-    return current >= checkIn && current < checkOut;
-  });
+  // Rooms are already filtered with the correct status from the parent
+  const dailyBookedRooms = rooms.filter(
+    (room) => room.status === 'Occupied'
+  );
 
   const dailyRevenue = dailyBookedRooms.reduce((acc, room) => {
     if (!room.payment) return acc;
