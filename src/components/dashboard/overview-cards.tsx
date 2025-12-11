@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Room } from '@/lib/data';
-import { List, Bed, DoorOpen, BedDouble } from 'lucide-react';
+import { List, DoorOpen, Bed, BedDouble } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Timestamp } from 'firebase/firestore';
@@ -29,9 +29,6 @@ const statusVariants: { [key in Room['status']]: string } = {
   Occupied: "bg-red-900/50 text-red-300",
 };
 
-function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
-    return date instanceof Timestamp ? date.toDate() : date;
-}
 
 const DetailRow = ({ room }: { room: Room }) => (
     <div className="grid grid-cols-5 gap-4 items-center p-2 rounded-lg bg-card/50 text-sm">

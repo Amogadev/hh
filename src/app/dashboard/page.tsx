@@ -16,6 +16,8 @@ import {
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { startOfDay, isWithinInterval } from 'date-fns';
 import { OverviewCards } from '@/components/dashboard/overview-cards';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 const HOTEL_ID = 'hotel-123';
 const baseRooms: Omit<Room, 'status' | 'effectiveStatus'>[] = [
@@ -152,7 +154,25 @@ export default function DashboardPage() {
                 />
             </div>
             <div className="space-y-6">
-                <OverviewCards rooms={displayRooms} />
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Card className="cursor-pointer hover:bg-card/80 flex flex-col flex-grow">
+                      <CardHeader>
+                        <CardTitle>Room Details</CardTitle>
+                        <CardDescription>Click to see an overview of room statistics.</CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-xl">
+                    <DialogHeader>
+                      <DialogTitle>Room Overview</DialogTitle>
+                      <DialogDescription>
+                        Click a category to view the detailed list of rooms.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <OverviewCards rooms={displayRooms} />
+                  </DialogContent>
+                </Dialog>
                 <DashboardCalendar
                     selectedDate={selectedDate}
                     setSelectedDate={setSelectedDate}
