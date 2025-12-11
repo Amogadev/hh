@@ -82,7 +82,7 @@ service cloud.firestore {
 
       /**
        * @description Controls access to Room subcollections.
-       * Rooms are public to read for all users but can be modified by any client.
+       * Rooms are public to read for all users and can be modified by any client.
        * @path /hotels/{hotelId}/rooms/{roomId}
        * @allow (list) Any user can list all rooms for a given hotel.
        * @allow (write) Any client can create, update, or delete a room document.
