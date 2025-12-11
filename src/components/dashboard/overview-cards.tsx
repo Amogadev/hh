@@ -46,8 +46,13 @@ const DetailRow = ({ room }: { room: Room }) => (
             </Badge>
         </div>
         <div>{room.booking?.guestName || 'N/A'}</div>
-        <div className="text-right font-mono">
-            {room.payment ? `₹${room.payment.amount.toFixed(2)}` : 'N/A'}
+        <div className="text-right font-mono text-xs">
+            {room.payment ? (
+                <div>
+                    <p>Paid: ₹{room.payment.advancePaid.toFixed(2)}</p>
+                    <p className="text-orange-400">Pending: ₹{room.payment.pending.toFixed(2)}</p>
+                </div>
+            ) : 'N/A'}
         </div>
         <div className="text-right flex items-center justify-end gap-2 text-xs">
              {room.payment ? (
@@ -101,7 +106,7 @@ export function OverviewCards({ rooms }: { rooms: Room[] }) {
                         <div>Room</div>
                         <div>Status</div>
                         <div>Guest</div>
-                        <div className="text-right">Amount</div>
+                        <div className="text-right">Payment</div>
                         <div className="text-right">Method</div>
                     </div>
                     {totalRooms.map(room => <DetailRow key={room.id} room={room} />)}
@@ -118,7 +123,7 @@ export function OverviewCards({ rooms }: { rooms: Room[] }) {
                         <div>Room</div>
                         <div>Status</div>
                         <div>Guest</div>
-                        <div className="text-right">Amount</div>
+                        <div className="text-right">Payment</div>
                         <div className="text-right">Method</div>
                     </div>
                     {availableRooms.length > 0 ? (
@@ -137,7 +142,7 @@ export function OverviewCards({ rooms }: { rooms: Room[] }) {
                         <div>Room</div>
                         <div>Status</div>
                         <div>Guest</div>
-                        <div className="text-right">Amount</div>
+                        <div className="text-right">Payment</div>
                         <div className="text-right">Method</div>
                     </div>
                     {occupiedRooms.length > 0 ? (
@@ -156,7 +161,7 @@ export function OverviewCards({ rooms }: { rooms: Room[] }) {
                         <div>Room</div>
                         <div>Status</div>
                         <div>Guest</div>
-                        <div className="text-right">Amount</div>
+                        <div className="text-right">Payment</div>
                         <div className="text-right">Method</div>
                     </div>
                     {bookedRooms.length > 0 ? (
