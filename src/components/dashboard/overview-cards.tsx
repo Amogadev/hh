@@ -1,8 +1,8 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getDashboardStats, roomsData, Room } from "@/lib/data";
-import { Bed, BedDouble, CalendarCheck, DoorOpen, CreditCard, Banknote, Landmark } from "lucide-react";
+import { Room } from "@/lib/data";
+import { Bed, BedDouble, CalendarCheck, DoorOpen, CreditCard, Banknote, Landmark, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -36,11 +36,16 @@ const statusVariants: { [key in Room["status"]]: string } = {
   Occupied: "bg-red-900/50 text-red-300",
 };
 
-const paymentMethodIcons = {
+const paymentMethodIcons: { [key in Payment["method"]]: React.ElementType } = {
   "Credit Card": CreditCard,
   "Cash": Banknote,
   "Bank Transfer": Landmark,
-}
+  "GPay": Wallet,
+  "PhonePe": Phone
+};
+
+import type { Payment } from "@/lib/data";
+import { Wallet } from "lucide-react";
 
 function RoomListDialog({ title, rooms }: { title: string; rooms: Room[] }) {
   const showPaymentDetails = rooms.some(room => room.status === 'Booked' || room.status === 'Occupied');
@@ -87,8 +92,8 @@ function RoomListDialog({ title, rooms }: { title: string; rooms: Room[] }) {
                 </TableCell>
                 {showPaymentDetails && (
                   <>
-                    <TableCell>{room.payment?.guestName || 'N/A'}</TableCell>
-                    <TableCell className="text-right">${room.payment?.amount.toFixed(2) || 'N/A'}</TableCell>
+                    <TableCell>{room.booking?.guestName || 'N/A'}</TableCell>
+                    <TableCell className="text-right">₹{room.payment?.amount.toFixed(2) || 'N/A'}</TableCell>
                     <TableCell>
                       {PaymentIcon && room.payment && (
                         <div className="flex items-center gap-2">
@@ -109,8 +114,10 @@ function RoomListDialog({ title, rooms }: { title: string; rooms: Room[] }) {
   );
 }
 
-export function OverviewCards() {
-  const { totalRooms, bookedRooms, occupiedRooms } = getDashboardStats();
+export function OverviewCards({ rooms }: { rooms: Room[] }) {
+  const totalRooms = rooms.length;
+  const bookedRooms = rooms.filter(r => r.status === 'Booked').length;
+  const occupiedRooms = rooms.filter(r => r.status === 'Occupied').length;
   const availableRooms = totalRooms - bookedRooms - occupiedRooms;
 
   const stats: Stat[] = [
@@ -165,7 +172,7 @@ export function OverviewCards() {
           </DialogTrigger>
           <RoomListDialog
             title={stat.title}
-            rooms={roomsData.filter(stat.filter)}
+            rooms={rooms.filter(stat.filter)}
           />
         </Dialog>
       ))}

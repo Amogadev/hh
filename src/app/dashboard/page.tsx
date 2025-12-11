@@ -41,7 +41,7 @@ export default function DashboardPage() {
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
           />
-          <RoomDetailCard />
+          <RoomDetailCard rooms={rooms} />
         </div>
         <div className="lg:col-span-2">
           <DailyRevenue

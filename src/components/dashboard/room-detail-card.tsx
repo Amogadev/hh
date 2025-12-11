@@ -12,8 +12,9 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { OverviewCards } from "./overview-cards";
 import { ListCollapse } from "lucide-react";
+import type { Room } from "@/lib/data";
 
-export function RoomDetailCard() {
+export function RoomDetailCard({ rooms }: { rooms: Room[] }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -37,7 +38,7 @@ export function RoomDetailCard() {
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          <OverviewCards />
+          <OverviewCards rooms={rooms} />
         </div>
       </DialogContent>
     </Dialog>
