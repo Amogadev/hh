@@ -13,6 +13,14 @@ import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { serverTimestamp } from 'firebase/firestore';
 
 const HOTEL_ID = 'hotel-123';
+const baseRooms: Room[] = [
+  { id: '101', name: 'Room 101', status: 'Available' },
+  { id: '102', name: 'Room 102', status: 'Available' },
+  { id: '103', name: 'Room 103', status: 'Available' },
+  { id: '104', name: 'Room 104', status: 'Available' },
+  { id: '105', name: 'Room 105', status: 'Available' },
+  { id: '106', name: 'Room 106', status: 'Available' },
+];
 
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = React.useState<Date>(
@@ -24,21 +32,21 @@ export default function DashboardPage() {
     return collection(firestore, 'hotels', HOTEL_ID, 'rooms');
   }, [firestore]);
 
-  const { data: rooms, isLoading: roomsLoading } = useCollection<Room>(roomsCollectionRef);
+  const { data: firestoreRooms, isLoading: roomsLoading } = useCollection<Room>(roomsCollectionRef);
 
   const seedData = async () => {
     if (!firestore) return;
     try {
       const batch = writeBatch(firestore);
       const roomsSnapshot = await getDocs(roomsCollectionRef);
-      if (!roomsSnapshot.empty) {
-        console.log('Data already seeded.');
+      if (!roomsSnapshot.empty && roomsSnapshot.docs.length >= baseRooms.length) {
+        console.log('Data already appears to be seeded.');
         return;
       }
 
-      roomsData.forEach((room) => {
+      baseRooms.forEach((room) => {
         const roomRef = doc(firestore, 'hotels', HOTEL_ID, 'rooms', room.id);
-        batch.set(roomRef, room);
+        batch.set(roomRef, { name: room.name, id: room.id, status: 'Available' });
       });
 
       await batch.commit();
@@ -67,7 +75,16 @@ export default function DashboardPage() {
     updateDocumentNonBlocking(roomRef, roomData);
   };
   
-  const displayRooms = rooms || [];
+  const displayRooms = React.useMemo(() => {
+    if (!firestoreRooms) {
+      return baseRooms;
+    }
+    const firestoreRoomsMap = new Map(firestoreRooms.map(room => [room.id, room]));
+    return baseRooms.map(baseRoom => {
+      return firestoreRoomsMap.get(baseRoom.id) || baseRoom;
+    });
+  }, [firestoreRooms]);
+
 
   return (
     <div className="flex flex-1 flex-col gap-6">
