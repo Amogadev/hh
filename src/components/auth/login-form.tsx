@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { AtSign, Lock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,8 +31,8 @@ export function LoginForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: "admin@gmail.com",
+      password: "password",
     },
   });
 
@@ -65,24 +64,20 @@ export function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email Address</FormLabel>
-              <div className="relative">
-                <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="you@example.com"
-                    className="pl-10"
-                    {...field}
-                  />
-                </FormControl>
-              </div>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="admin@gmail.com"
+                  {...field}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -93,22 +88,18 @@ export function LoginForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Password</FormLabel>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="••••••••"
-                    className="pl-10"
-                    {...field}
-                  />
-                </FormControl>
-              </div>
+              <FormControl>
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  {...field}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" className="w-full mt-2" disabled={isLoading}>
           {isLoading ? "Signing In..." : "Sign In"}
         </Button>
       </form>

@@ -6,59 +6,38 @@ import { Logo } from "@/components/icons";
 
 export default function LoginPage() {
   const loginImage = PlaceHolderImages.find(
-    (image) => image.id === "login-background"
+    (image) => image.id === "login-background-dark"
   );
 
   return (
-    <div className="w-full h-screen lg:grid lg:grid-cols-2">
-      <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-        <Image
-          src={loginImage?.imageUrl || "/placeholder.svg"}
-          alt={loginImage?.description || "Hotel Lobby"}
-          data-ai-hint={loginImage?.imageHint}
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-tr from-primary to-primary/70" />
-        <div className="relative z-20 flex items-center text-lg font-medium">
-          <Logo className="h-8 w-8 mr-2" />
-          HotelView
-        </div>
-        <div className="relative z-20 mt-auto">
-          <blockquote className="space-y-2">
-            <p className="text-lg">
-              &ldquo;The best hotel management platform to streamline your operations and enhance guest experience.&rdquo;
-            </p>
-            <footer className="text-sm">HotelView Team</footer>
-          </blockquote>
-        </div>
-      </div>
-      <div className="flex items-center justify-center py-12">
-        <div className="mx-auto grid w-[350px] gap-6">
+    <div className="relative w-full h-screen flex items-center justify-center">
+      <Image
+        src={loginImage?.imageUrl || "/placeholder.svg"}
+        alt={loginImage?.description || "Hotel Pool"}
+        data-ai-hint={loginImage?.imageHint}
+        fill
+        className="object-cover"
+        priority
+      />
+      <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
+      <div className="relative z-10 w-full max-w-md p-6">
+        <div className="mx-auto grid w-[350px] gap-6 bg-card p-8 rounded-lg shadow-lg">
           <div className="grid gap-2 text-center">
+            <div className="flex items-center justify-center text-2xl font-semibold mb-2">
+                <Logo className="h-8 w-8 mr-2" />
+                HotelZenith
+            </div>
             <h1 className="text-3xl font-bold font-headline">Welcome Back</h1>
-            <p className="text-balance text-muted-foreground">
-              Enter your credentials to access your dashboard
-            </p>
           </div>
           <LoginForm />
-          <p className="px-8 text-center text-sm text-muted-foreground">
-            By clicking continue, you agree to our{" "}
+          <p className="mt-4 px-8 text-center text-sm text-muted-foreground">
+            Don't have an account?{" "}
             <Link
-              href="/terms"
+              href="/signup"
               className="underline underline-offset-4 hover:text-primary"
             >
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link
-              href="/privacy"
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              Privacy Policy
+              Sign up
             </Link>
-            .
           </p>
         </div>
       </div>
