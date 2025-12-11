@@ -30,16 +30,15 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <RoomDetailCard />
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <RoomStatus selectedDate={selectedDate} rooms={rooms} />
-        </div>
         <div className="flex flex-col gap-6">
           <DashboardCalendar
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
           />
+          <RoomDetailCard />
+        </div>
+        <div className="lg:col-span-2">
           <DailyRevenue
             selectedDate={selectedDate}
             rooms={rooms}
@@ -47,6 +46,7 @@ export default function DashboardPage() {
           />
         </div>
       </div>
+      <RoomStatus selectedDate={selectedDate} rooms={rooms} />
     </div>
   );
 }

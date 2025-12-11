@@ -33,14 +33,13 @@ export function DailyRevenue({
   );
 
   const dailyRevenue = dailyBookedRooms.reduce((acc, room) => {
-    // This is a simplification. In a real app, you'd divide total by number of days.
-    return (
-      acc +
-      (room.payment?.amount || 0) /
-        (((room.booking?.checkOut.getTime() ?? 1) -
-          (room.booking?.checkIn.getTime() ?? 1)) /
-          (1000 * 3600 * 24))
-    );
+    if (!room.booking || !room.payment) return acc;
+    // Calculate nightly rate
+    const bookingDays =
+      (room.booking.checkOut.getTime() - room.booking.checkIn.getTime()) /
+      (1000 * 3600 * 24);
+    const nightlyRate = bookingDays > 0 ? room.payment.amount / bookingDays : 0;
+    return acc + nightlyRate;
   }, 0);
 
   return (
