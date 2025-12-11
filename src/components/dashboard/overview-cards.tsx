@@ -19,28 +19,25 @@ export function OverviewCards() {
       value: availableRooms,
       icon: DoorOpen,
       color: "text-green-400",
-      cardColor: "border-green-500/50",
     },
     {
       title: "Rooms Occupied",
       value: occupiedRooms,
       icon: BedDouble,
       color: "text-red-400",
-      cardColor: "border-red-500/50",
     },
     {
       title: "Rooms Booked",
       value: bookedRooms,
       icon: CalendarCheck,
       color: "text-orange-400",
-      cardColor: "border-orange-500/50",
     },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2">
       {stats.map((stat) => (
-        <Card key={stat.title} className={cn("border-l-4", stat.cardColor)}>
+        <Card key={stat.title}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
             <stat.icon className={cn("h-5 w-5 text-muted-foreground", stat.color)} />
