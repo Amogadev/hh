@@ -12,7 +12,7 @@ import type { Room, Payment } from '@/lib/data';
 import { Bed, User, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { format, isWithinInterval, isEqual } from 'date-fns';
+import { format, isWithinInterval, isEqual, startOfDay } from 'date-fns';
 import { BookingForm } from './booking-form';
 import { ManageBookingForm } from './manage-booking-form';
 
@@ -38,21 +38,17 @@ function getRoomStatusForDate(room: Room, date: Date): Room['status'] {
   if (!room.booking) return 'Available';
 
   const { checkIn, checkOut } = room.booking;
+  const checkInDate = startOfDay(new Date(checkIn));
+  const checkOutDate = startOfDay(new Date(checkOut));
+  const selectedDate = startOfDay(date);
 
-  const selectedDate = new Date(date);
-  selectedDate.setHours(0, 0, 0, 0);
-
-  const checkInDate = new Date(checkIn);
-  checkInDate.setHours(0, 0, 0, 0);
-
-  const checkOutDate = new Date(checkOut);
-  checkOutDate.setHours(0, 0, 0, 0);
-
+  // A room is "Occupied" if the selected date is between check-in (inclusive) and check-out (exclusive).
   if (selectedDate >= checkInDate && selectedDate < checkOutDate) {
     return 'Occupied';
   }
-  
-  // This covers future and past bookings.
+
+  // If it's not occupied on the selected date, but has a booking, it is considered "Booked".
+  // This covers past and future bookings relative to the selected date.
   return 'Booked';
 }
 
@@ -97,7 +93,7 @@ export function RoomStatusGrid({
 
     const updatedRoom: Room = {
       ...originalRoom,
-      status: 'Booked',
+      status: 'Booked', // Set initial status, getRoomStatusForDate will determine effective status
       booking: {
         guestName: values.guestName,
         checkIn: values.checkIn,
@@ -112,14 +108,14 @@ export function RoomStatusGrid({
     <>
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {rooms.map((room) => {
-          const status = getRoomStatusForDate(room, selectedDate);
+          const effectiveStatus = getRoomStatusForDate(room, selectedDate);
           return (
             <RoomCard
               key={room.id}
               room={room}
-              effectiveStatus={status}
+              effectiveStatus={effectiveStatus}
               onButtonClick={() => {
-                if (status === 'Available') {
+                if (effectiveStatus === 'Available') {
                   setRoomForBooking(room);
                 } else {
                   setRoomForManagement(room);
