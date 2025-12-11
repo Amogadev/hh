@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDashboardStats, roomsData, Room } from "@/lib/data";
-import { Bed, BedDouble, CalendarCheck, DoorOpen } from "lucide-react";
+import { Bed, BedDouble, CalendarCheck, DoorOpen, CreditCard, Banknote, Landmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -36,9 +36,17 @@ const statusVariants: { [key in Room["status"]]: string } = {
   Occupied: "bg-red-900/50 text-red-300",
 };
 
+const paymentMethodIcons = {
+  "Credit Card": CreditCard,
+  "Cash": Banknote,
+  "Bank Transfer": Landmark,
+}
+
 function RoomListDialog({ title, rooms }: { title: string; rooms: Room[] }) {
+  const showPaymentDetails = rooms.some(room => room.status === 'Booked' || room.status === 'Occupied');
+
   return (
-    <DialogContent>
+    <DialogContent className="max-w-3xl">
       <DialogHeader>
         <DialogTitle>{title}</DialogTitle>
         <DialogDescription>
@@ -51,10 +59,19 @@ function RoomListDialog({ title, rooms }: { title: string; rooms: Room[] }) {
             <TableRow>
               <TableHead>Room</TableHead>
               <TableHead>Status</TableHead>
+              {showPaymentDetails && (
+                <>
+                  <TableHead>Guest</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Method</TableHead>
+                </>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rooms.map((room) => (
+            {rooms.map((room) => {
+              const PaymentIcon = room.payment ? paymentMethodIcons[room.payment.method] : null;
+              return(
               <TableRow key={room.id}>
                 <TableCell className="font-medium">{room.name}</TableCell>
                 <TableCell>
@@ -68,8 +85,23 @@ function RoomListDialog({ title, rooms }: { title: string; rooms: Room[] }) {
                     {room.status}
                   </Badge>
                 </TableCell>
+                {showPaymentDetails && (
+                  <>
+                    <TableCell>{room.payment?.guestName || 'N/A'}</TableCell>
+                    <TableCell className="text-right">${room.payment?.amount.toFixed(2) || 'N/A'}</TableCell>
+                    <TableCell>
+                      {PaymentIcon && room.payment && (
+                        <div className="flex items-center gap-2">
+                           <PaymentIcon className="h-4 w-4 text-muted-foreground" />
+                           {room.payment.method}
+                        </div>
+                      )}
+                      {!room.payment && 'N/A'}
+                    </TableCell>
+                  </>
+                )}
               </TableRow>
-            ))}
+            )})}
           </TableBody>
         </Table>
       </div>
