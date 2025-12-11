@@ -117,7 +117,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <h1 className="text-2xl font-bold text-center tracking-tight">Where Every Stay is a Story.</h1>
+      <h1 className="text-2xl font-bold text-center tracking-tight">WELCOME</h1>
       {roomsLoading && <p>Loading rooms...</p>}
       {!roomsLoading && (
         <>
