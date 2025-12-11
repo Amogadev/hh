@@ -1,12 +1,13 @@
 import { addDays, format } from "date-fns";
+import { Timestamp } from "firebase/firestore";
 
 export type Room = {
   id: string;
   name: string;
   status: 'Available' | 'Booked' | 'Occupied';
   booking?: {
-    checkIn: Date;
-    checkOut: Date;
+    checkIn: Date | Timestamp;
+    checkOut: Date | Timestamp;
     guestName: string;
   };
   payment?: Payment;
@@ -34,6 +35,7 @@ export const paymentsData: Payment[] = [
   { invoiceId: 'INV006', guestName: 'Linda Wilson', date: '2024-07-16', amount: 950.00, advancePaid: 950.00, pending: 0, status: 'Paid', method: 'Cash' },
 ];
 
+// This is now just seeding data. The app will use Firestore.
 export const roomsData: Room[] = [
   { id: '101', name: 'Room 101', status: 'Available' },
   { id: '102', name: 'Room 102', status: 'Available' },

@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import {
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/firebase";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -25,6 +29,7 @@ const formSchema = z.object({
 
 export function LoginForm() {
   const router = useRouter();
+  const auth = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -38,28 +43,23 @@ export function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // Mock authentication
-    console.log("Form values", values);
-
-    // In a real app, you would handle authentication with Firebase here.
-    // For example:
-    // try {
-    //   await signInWithEmailAndPassword(auth, values.email, values.password);
-    //   router.push('/dashboard');
-    // } catch (error) {
-    //   toast({ variant: "destructive", title: "Login Failed", description: "Invalid credentials. Please try again." });
-    // }
-
-    // Mock delay to simulate network request
-    setTimeout(() => {
-      // Mock success
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
         title: "Login Successful",
         description: "Redirecting to your dashboard...",
       });
       router.push("/dashboard");
+    } catch (error: any) {
+      console.error("Login failed", error);
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message || "Invalid credentials. Please try again.",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   }
 
   return (

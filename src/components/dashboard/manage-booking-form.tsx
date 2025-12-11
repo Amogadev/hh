@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import type { Room, Payment } from '@/lib/data';
 import { format } from 'date-fns';
+import { Timestamp } from 'firebase/firestore';
 
 const manageBookingSchema = z.object({
   repaymentAmount: z.coerce.number().min(0.01, 'Repayment must be positive'),
@@ -39,6 +40,10 @@ type ManageBookingFormProps = {
   onOpenChange: (isOpen: boolean) => void;
   onUpdateRoom: (updatedRoom: Room) => void;
 };
+
+function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
+    return date instanceof Timestamp ? date.toDate() : date;
+}
 
 export function ManageBookingForm({
   room,
@@ -91,17 +96,15 @@ export function ManageBookingForm({
         payment: updatedPayment,
     };
     
-    // Mock delay
-    setTimeout(() => {
-        onUpdateRoom(updatedRoom);
-        toast({
-            title: "Payment Successful!",
-            description: `₹${values.repaymentAmount.toFixed(2)} has been paid for ${room.name}.`,
-        });
-        setIsLoading(false);
-        onOpenChange(false);
-        form.reset();
-    }, 1000);
+    onUpdateRoom(updatedRoom);
+    
+    toast({
+        title: "Payment Successful!",
+        description: `₹${values.repaymentAmount.toFixed(2)} has been paid for ${room.name}.`,
+    });
+    setIsLoading(false);
+    onOpenChange(false);
+    form.reset();
   };
 
   return (
@@ -121,11 +124,11 @@ export function ManageBookingForm({
              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                     <Label>Check-in</Label>
-                    <p className="font-semibold">{format(new Date(booking.checkIn), "PPP")}</p>
+                    <p className="font-semibold">{format(getDateFromTimestampOrDate(booking.checkIn), "PPP")}</p>
                 </div>
                 <div className="space-y-1">
                     <Label>Check-out</Label>
-                    <p className="font-semibold">{format(new Date(booking.checkOut), "PPP")}</p>
+                    <p className="font-semibold">{format(getDateFromTimestampOrDate(booking.checkOut), "PPP")}</p>
                 </div>
             </div>
             <div className="grid grid-cols-3 gap-4">

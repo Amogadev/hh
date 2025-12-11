@@ -13,8 +13,9 @@ import { Bed, User, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { format, isWithinInterval, isEqual, startOfDay } from 'date-fns';
-import { BookingForm } from './booking-form';
+import { BookingForm, type BookingFormValues } from './booking-form';
 import { ManageBookingForm } from './manage-booking-form';
+import { Timestamp } from 'firebase/firestore';
 
 const statusConfig = {
   Available: {
@@ -34,33 +35,25 @@ const statusConfig = {
   },
 } as const;
 
+function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
+    return date instanceof Timestamp ? date.toDate() : date;
+}
+
 function getRoomStatusForDate(room: Room, date: Date): Room['status'] {
   if (!room.booking) return 'Available';
 
-  const { checkIn, checkOut } = room.booking;
-  const checkInDate = startOfDay(new Date(checkIn));
-  const checkOutDate = startOfDay(new Date(checkOut));
+  const checkInDate = startOfDay(getDateFromTimestampOrDate(room.booking.checkIn));
+  const checkOutDate = startOfDay(getDateFromTimestampOrDate(room.booking.checkOut));
   const selectedDate = startOfDay(date);
 
   // A room is "Occupied" if the selected date is between check-in (inclusive) and check-out (exclusive).
   if (selectedDate >= checkInDate && selectedDate < checkOutDate) {
     return 'Occupied';
   }
-
-  // If it's not occupied on the selected date, but has a booking, it is considered "Booked".
-  // This covers past and future bookings relative to the selected date.
+  
+  // If not occupied, but booking exists, it's considered "Booked" for future/past dates
   return 'Booked';
 }
-
-
-type BookingData = {
-    guestName: string;
-    checkIn: Date;
-    checkOut: Date;
-    paymentMethod: "Credit Card" | "Cash" | "Bank Transfer" | "GPay" | "PhonePe";
-    totalAmount: number;
-    advancePayment: number;
-};
 
 export function RoomStatusGrid({
   selectedDate,
@@ -74,8 +67,7 @@ export function RoomStatusGrid({
   const [roomForBooking, setRoomForBooking] = React.useState<Room | null>(null);
   const [roomForManagement, setRoomForManagement] = React.useState<Room | null>(null);
 
-
-  const handleBookingSuccess = (roomId: string, values: BookingData) => {
+  const handleBookingSuccess = (roomId: string, values: BookingFormValues) => {
     const pendingAmount = values.totalAmount - values.advancePayment;
     const newPayment: Payment = {
         invoiceId: `INV-${Date.now()}`,
@@ -193,8 +185,8 @@ function RoomCard({
                 </p>
                 <p className="text-muted-foreground flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
-                  {format(new Date(room.booking.checkIn), 'MMM d')} -{' '}
-                  {format(new Date(room.booking.checkOut), 'MMM d')}
+                  {format(getDateFromTimestampOrDate(room.booking.checkIn), 'MMM d')} -{' '}
+                  {format(getDateFromTimestampOrDate(room.booking.checkOut), 'MMM d')}
                 </p>
               </>
             )}

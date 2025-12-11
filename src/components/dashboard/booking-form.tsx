@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
@@ -52,7 +52,7 @@ const bookingFormSchema = z
     path: ['advancePayment'],
   });
 
-type BookingFormValues = z.infer<typeof bookingFormSchema>;
+export type BookingFormValues = z.infer<typeof bookingFormSchema>;
 
 type BookingFormProps = {
   room: Room;
@@ -88,20 +88,18 @@ export function BookingForm({
 
   async function onSubmit(values: BookingFormValues) {
     setIsLoading(true);
-    // Here you would typically call a function to save to your database
-    console.log('Booking submitted', { roomId: room.id, ...values });
+    
+    // The actual write to Firestore is now handled by onBookingSuccess
+    onBookingSuccess(room.id, values);
 
-    // Mock delay
-    setTimeout(() => {
-        onBookingSuccess(room.id, values);
-        toast({
-            title: 'Booking Confirmed!',
-            description: `${room.name} has been booked for ${values.guestName}.`,
-        });
-        setIsLoading(false);
-        onOpenChange(false);
-        form.reset();
-    }, 1000);
+    toast({
+        title: 'Booking Confirmed!',
+        description: `${room.name} has been booked for ${values.guestName}.`,
+    });
+    
+    setIsLoading(false);
+    onOpenChange(false);
+    form.reset();
   }
 
   return (
