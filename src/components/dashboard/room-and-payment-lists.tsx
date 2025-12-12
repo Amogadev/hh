@@ -14,11 +14,12 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Trash2 } from 'lucide-react';
 import type { Room } from '@/lib/data';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 
 type RoomAndPaymentListsProps = {
   rooms: Room[];
+  allRooms: Room[];
   onDeleteBooking: (roomId: string) => void;
 };
 
@@ -32,11 +33,17 @@ function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
     return date instanceof Timestamp ? date.toDate() : date;
 }
 
-export function RoomAndPaymentLists({ rooms, onDeleteBooking }: RoomAndPaymentListsProps) {
+export function RoomAndPaymentLists({ rooms, allRooms, onDeleteBooking }: RoomAndPaymentListsProps) {
   const occupiedRooms = rooms.filter((room) => room.status === 'Occupied' && room.booking);
-  const bookedRooms = rooms.filter(room => room.status === 'Booked' && room.booking);
   const availableRooms = rooms.filter((room) => room.status === 'Available' && !room.booking);
   const paymentHistory = rooms.filter(r => r.payment && r.booking);
+  
+  const futureBookings = allRooms.filter(room => {
+    if (!room.booking) return false;
+    const checkInDate = startOfDay(getDateFromTimestampOrDate(room.booking.checkIn));
+    const today = startOfDay(new Date());
+    return checkInDate >= today;
+  });
 
 
   return (
@@ -109,11 +116,11 @@ export function RoomAndPaymentLists({ rooms, onDeleteBooking }: RoomAndPaymentLi
           </AccordionItem>
           {/* Booked Rooms */}
           <AccordionItem value="booked">
-            <AccordionTrigger className='font-semibold'>Booked ({bookedRooms.length})</AccordionTrigger>
+            <AccordionTrigger className='font-semibold'>Future Bookings ({futureBookings.length})</AccordionTrigger>
             <AccordionContent>
-              {bookedRooms.length > 0 ? (
+              {futureBookings.length > 0 ? (
                 <ul className="space-y-2">
-                  {bookedRooms.map(room => (
+                  {futureBookings.map(room => (
                      <li key={room.id} className="flex justify-between items-center text-sm">
                        <span>{room.name}</span>
                        <div className="text-xs text-muted-foreground text-right">
@@ -125,7 +132,7 @@ export function RoomAndPaymentLists({ rooms, onDeleteBooking }: RoomAndPaymentLi
                     </li>
                   ))}
                 </ul>
-              ) : <p className="text-sm text-muted-foreground">No rooms booked for this date.</p>}
+              ) : <p className="text-sm text-muted-foreground">No upcoming bookings.</p>}
             </AccordionContent>
           </AccordionItem>
           {/* Available Rooms */}

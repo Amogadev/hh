@@ -45,21 +45,19 @@ function getRoomStatusForDate(
     const selectedDay = startOfDay(date);
 
     if (selectedDay >= checkIn && selectedDay < checkOut) {
-      // Within the booking period
       if (room.booking.checkedIn) {
         return 'Occupied';
       }
       return 'Booked';
     }
   }
-  // Otherwise, it's available. This includes the day of check-out.
   return 'Available';
 }
 
 
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = React.useState<Date>(
-    new Date('2025-12-11')
+    new Date()
   );
   const firestore = useFirestore();
 
@@ -117,6 +115,7 @@ export default function DashboardPage() {
   };
 
   const displayRooms = React.useMemo(() => {
+    if (!firestoreRooms) return [];
     const firestoreRoomsMap = new Map(
       firestoreRooms?.map((room) => [room.id, room])
     );
@@ -135,6 +134,25 @@ export default function DashboardPage() {
       return mergedRoom;
     });
   }, [firestoreRooms, selectedDate]);
+  
+  const allRooms = React.useMemo(() => {
+     if (!firestoreRooms) return [];
+     const firestoreRoomsMap = new Map(
+      firestoreRooms?.map((room) => [room.id, room])
+    );
+
+    return baseRooms.map((baseRoom) => {
+      const firestoreRoomData = firestoreRoomsMap.get(baseRoom.id);
+      const mergedRoom: Room = {
+        ...baseRoom,
+        status: 'Available', // Default status
+        ...firestoreRoomData,
+      };
+      // We don't calculate status here, returning the raw booking info
+      return mergedRoom;
+    });
+  }, [firestoreRooms]);
+
 
   return (
     <div className="flex flex-1 flex-col gap-6">
@@ -176,6 +194,7 @@ export default function DashboardPage() {
                 />
                 <RoomAndPaymentLists
                     rooms={displayRooms}
+                    allRooms={allRooms}
                     onDeleteBooking={handleDeleteBooking}
                 />
             </div>
