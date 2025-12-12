@@ -201,7 +201,7 @@ export default function DashboardPage() {
                 Generate Report
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-4xl md:max-w-6xl lg:max-w-7xl h-[90vh]">
+          <DialogContent className="sm:max-w-3xl">
              <DialogHeader>
               <DialogTitle>Generate Report</DialogTitle>
               <DialogDescription>
