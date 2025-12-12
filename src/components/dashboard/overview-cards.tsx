@@ -17,8 +17,8 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Room } from '@/lib/data';
-import { List, DoorOpen, Bed, KeyRound } from 'lucide-react';
+import { Room, Payment } from '@/lib/data';
+import { List, DoorOpen, Bed, KeyRound, DollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Timestamp } from 'firebase/firestore';
@@ -74,6 +74,24 @@ const DetailRow = ({ room, isFutureBooking }: { room: Room, isFutureBooking?: bo
     </div>
 );
 
+const PaymentHistoryRow = ({ room }: { room: Room }) => (
+    <div className="grid grid-cols-6 gap-4 items-center p-2 rounded-lg bg-card/50 text-sm">
+        <div className="font-semibold col-span-1">{room.name}</div>
+        <div className="font-semibold col-span-1">{room.payment?.guestName}</div>
+        <div className='col-span-1'>{room.payment?.date ? format(new Date(room.payment.date), 'MMM d, yyyy') : 'N/A'}</div>
+        <div className="text-right font-mono text-xs col-span-1">
+            {room.payment ? `₹${room.payment.amount.toFixed(2)}` : 'N/A'}
+        </div>
+        <div className="text-right font-mono text-xs col-span-1">
+            {room.payment ? `₹${room.payment.pending.toFixed(2)}` : 'N/A'}
+        </div>
+        <div className="text-right text-xs col-span-1">
+            {room.payment?.method || 'N/A'}
+        </div>
+    </div>
+);
+
+
 const RoomListDialog = ({ title, rooms, trigger, isFutureBooking }: { title: string, rooms: Room[], trigger: React.ReactNode, isFutureBooking?: boolean }) => (
     <Dialog>
         <DialogTrigger asChild>
@@ -105,6 +123,38 @@ const RoomListDialog = ({ title, rooms, trigger, isFutureBooking }: { title: str
     </Dialog>
 );
 
+const PaymentHistoryDialog = ({ rooms, trigger }: { rooms: Room[], trigger: React.ReactNode }) => (
+    <Dialog>
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
+        <DialogContent className="sm:max-w-4xl">
+            <DialogHeader>
+                <DialogTitle>Total Payment History</DialogTitle>
+                <DialogDescription>A complete record of all payments.</DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-2 max-h-[60vh] overflow-y-auto">
+                <div className="grid grid-cols-6 gap-4 px-2 py-2 font-semibold text-muted-foreground text-xs sticky top-0 bg-background z-10">
+                    <div className="col-span-1">Room</div>
+                    <div className="col-span-1">Guest</div>
+                    <div className="col-span-1">Date</div>
+                    <div className="text-right col-span-1">Total</div>
+                    <div className="text-right col-span-1">Pending</div>
+                    <div className="text-right col-span-1">Method</div>
+                </div>
+                {rooms.length > 0 ? (
+                    rooms.map(room => <PaymentHistoryRow key={room.id} room={room} />)
+                ) : (
+                    <p className="p-2 text-sm text-muted-foreground text-center">No payment history found.</p>
+                )}
+            </div>
+            <DialogFooter>
+                <DialogTrigger asChild>
+                    <Button variant="outline">Close</Button>
+                </DialogTrigger>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+);
+
 
 export function OverviewCards({ rooms, allRooms }: { rooms: Room[], allRooms: Room[] }) {
   const totalRooms = rooms;
@@ -118,6 +168,11 @@ export function OverviewCards({ rooms, allRooms }: { rooms: Room[], allRooms: Ro
     return checkInDate > today;
   });
 
+  const allPayments = allRooms.filter(room => room.payment).sort((a, b) => {
+    if (!a.payment || !b.payment) return 0;
+    return new Date(b.payment.date).getTime() - new Date(a.payment.date).getTime();
+  });
+
   const cardData = [
     { title: 'Total Rooms', data: totalRooms, icon: List, isFutureBooking: false },
     { title: 'Rooms Available', data: availableRooms, icon: DoorOpen, isFutureBooking: false },
@@ -126,7 +181,7 @@ export function OverviewCards({ rooms, allRooms }: { rooms: Room[], allRooms: Ro
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {cardData.map(({ title, data, icon: Icon, isFutureBooking }) => (
             <RoomListDialog
                 key={title}
@@ -146,6 +201,20 @@ export function OverviewCards({ rooms, allRooms }: { rooms: Room[], allRooms: Ro
                 }
             />
         ))}
+         <PaymentHistoryDialog
+            rooms={allPayments}
+            trigger={
+                <Card className="cursor-pointer hover:bg-card/80 transition-colors">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Total Payment History</CardTitle>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{allPayments.length}</div>
+                    </CardContent>
+                </Card>
+            }
+        />
     </div>
   );
 }

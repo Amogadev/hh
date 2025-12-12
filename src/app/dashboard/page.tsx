@@ -160,36 +160,40 @@ export default function DashboardPage() {
       {roomsLoading && <p>Loading rooms...</p>}
       {!roomsLoading && (
         <div className="flex flex-col gap-6">
+            <Dialog>
+                <DialogTrigger asChild>
+                <Card className="cursor-pointer hover:bg-card/80 flex flex-col flex-grow">
+                    <CardHeader>
+                    <CardTitle>Room Details</CardTitle>
+                    <CardDescription>Click to see an overview of room statistics.</CardDescription>
+                    </CardHeader>
+                </Card>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-4xl lg:max-w-6xl">
+                <DialogHeader>
+                    <DialogTitle>Room Overview</DialogTitle>
+                    <DialogDescription>
+                    Click each section to see a detailed list of rooms.
+                    </DialogDescription>
+                </DialogHeader>
+                <OverviewCards rooms={displayRooms} allRooms={allRooms} />
+                </DialogContent>
+            </Dialog>
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 <Dialog>
-                  <DialogTrigger asChild>
-                    <Card className="cursor-pointer hover:bg-card/80 flex flex-col flex-grow">
-                      <CardHeader>
-                        <CardTitle>Room Details</CardTitle>
-                        <CardDescription>Click to see an overview of room statistics.</CardDescription>
-                      </CardHeader>
-                    </Card>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-xl">
-                    <DialogHeader>
-                      <DialogTitle>Room Overview</DialogTitle>
-                      <DialogDescription>
-                        Click each section to see a detailed list of rooms.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <OverviewCards rooms={displayRooms} allRooms={allRooms} />
-                  </DialogContent>
-                </Dialog>
                 <DashboardCalendar
                     selectedDate={selectedDate}
                     setSelectedDate={setSelectedDate}
                 />
-                <RoomAndPaymentLists
-                    rooms={displayRooms}
-                    allRooms={allRooms}
-                    onDeleteBooking={handleDeleteBooking}
-                />
+                <div className="md:col-span-2">
+                    <RoomAndPaymentLists
+                        rooms={displayRooms}
+                        allRooms={allRooms}
+                        onDeleteBooking={handleDeleteBooking}
+                    />
+                </div>
             </div>
+
             <RoomStatus
                 selectedDate={selectedDate}
                 rooms={displayRooms}
