@@ -168,7 +168,7 @@ export default function DashboardPage() {
                     onUpdateRoom={handleUpdateRoom}
                 />
             </div>
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6">
                 <Dialog>
                   <DialogTrigger asChild>
                     <Card className="cursor-pointer hover:bg-card/80 flex flex-col flex-grow">
