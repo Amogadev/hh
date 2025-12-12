@@ -92,10 +92,12 @@ service cloud.firestore {
      * @path /enquiries/{enquiryId}
      * @allow (read, update, delete) if the user is the owner of the document.
      * @allow (create) if the user is signed in and the new document's userId matches their own.
+     * @allow (list) if the query is limited to the user's own documents.
      */
     match /enquiries/{enquiryId} {
       allow read, update, delete: if isOwner(resource.data.userId);
       allow create: if isOwner(request.resource.data.userId);
+      allow list: if isSignedIn() && request.query.limit <= 10 && request.auth.uid == request.query.filters[0].value;
     }
   }
 }
