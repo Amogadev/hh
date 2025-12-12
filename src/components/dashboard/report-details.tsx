@@ -74,14 +74,14 @@ export function ReportDetails({ allRooms }: ReportDetailsProps) {
     const filteredPayments = allRooms.filter(room => {
         if (!room.payment) return false;
         const paymentDate = new Date(room.payment.date);
-        return isAfter(paymentDate, from) || isEqual(paymentDate, from) && 
+        return (isAfter(paymentDate, from) || isEqual(paymentDate, from)) && 
                (isBefore(paymentDate, to) || isEqual(paymentDate, to));
     });
 
     // Filter Enquiries
     const filteredEnquiries = loggedEnquiries?.filter(enquiry => {
         const enquiryDate = getDateFromTimestampOrDate(enquiry.createdAt);
-        return isAfter(enquiryDate, from) || isEqual(enquiryDate, from) &&
+        return (isAfter(enquiryDate, from) || isEqual(enquiryDate, from)) &&
                (isBefore(enquiryDate, to) || isEqual(enquiryDate, to));
     }) || [];
 
