@@ -27,9 +27,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { format } from 'date-fns';
+import { format, differenceInCalendarDays, isFuture } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { AlarmClock } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
 
 const enquiryFormSchema = z.object({
   enquiryType: z.enum(['walk-in', 'by-phone'], { required_error: 'Please select an enquiry type.' }),
@@ -79,7 +82,7 @@ export function EnquiryForm() {
   }
 
   return (
-    <>
+    <TooltipProvider>
       <Card>
         <CardHeader>
           <CardTitle>Customer Enquiry</CardTitle>
@@ -156,18 +159,37 @@ export function EnquiryForm() {
                     <h4 className="text-sm font-semibold text-muted-foreground">Logged Enquiries (Session)</h4>
                     <ScrollArea className="h-[150px] pr-4">
                         <div className="space-y-4">
-                            {loggedEnquiries.map((enquiry, index) => (
+                            {loggedEnquiries.map((enquiry, index) => {
+                                const today = new Date();
+                                const bookingDate = enquiry.bookingDate;
+                                const daysDifference = differenceInCalendarDays(bookingDate, today);
+                                const showNotification = isFuture(bookingDate) && daysDifference >= 0 && daysDifference <= 3;
+
+                                return (
                                 <div key={index} className="p-3 bg-muted/50 rounded-lg border">
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <p className="font-semibold capitalize">{enquiry.enquiryType.replace('-', ' ')}</p>
                                             <p className="text-sm text-muted-foreground">{format(enquiry.bookingDate, 'PPP')}</p>
                                         </div>
-                                        <Badge variant="secondary">Logged</Badge>
+                                        <div className='flex items-center gap-2'>
+                                            {showNotification && (
+                                                <Tooltip>
+                                                    <TooltipTrigger>
+                                                        <AlarmClock className="h-4 w-4 text-yellow-400" />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Date is approaching soon!</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            )}
+                                            <Badge variant="secondary">Logged</Badge>
+                                        </div>
                                     </div>
                                     <p className="text-sm mt-2">{enquiry.notes}</p>
                                 </div>
-                            ))}
+                                )
+                            })}
                         </div>
                     </ScrollArea>
                 </div>
@@ -206,6 +228,6 @@ export function EnquiryForm() {
             </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </TooltipProvider>
   );
 }
