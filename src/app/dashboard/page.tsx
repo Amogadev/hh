@@ -23,6 +23,7 @@ import { EnquiryForm } from '@/components/dashboard/enquiry-form';
 import { Button } from '@/components/ui/button';
 import { FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ReportDetails } from '@/components/dashboard/report-details';
 
 const HOTEL_ID = 'hotel-123';
 const baseRooms: Omit<Room, 'status' | 'effectiveStatus'>[] = [
@@ -173,10 +174,23 @@ export default function DashboardPage() {
     <div className="flex flex-1 flex-col gap-6">
       <div className="flex flex-col items-center gap-4">
         <h1 className="text-2xl font-bold text-center tracking-tight">WELCOME</h1>
-        <Button variant="outline">
-            <FileDown className="mr-2 h-4 w-4" />
-            Generate Report
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline">
+                <FileDown className="mr-2 h-4 w-4" />
+                Generate Report
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-4xl md:max-w-6xl lg:max-w-7xl h-[90vh]">
+             <DialogHeader>
+              <DialogTitle>Generate Report</DialogTitle>
+              <DialogDescription>
+                Select a date range to generate a detailed report on bookings, payments, and enquiries.
+              </DialogDescription>
+            </DialogHeader>
+            <ReportDetails allRooms={allRooms} />
+          </DialogContent>
+        </Dialog>
       </div>
       {roomsLoading && <p>Loading rooms...</p>}
       {!roomsLoading && (
