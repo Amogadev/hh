@@ -24,12 +24,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { format } from 'date-fns';
 
 const enquiryFormSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().min(10, 'Phone number must be at least 10 digits').optional().or(z.literal('')),
-  message: z.string().min(1, 'Message is required'),
+  enquiryType: z.enum(['walk-in', 'by-phone'], { required_error: 'Please select an enquiry type.' }),
+  bookingDate: z.coerce.date({ required_error: 'A date is required.' }),
+  notes: z.string().min(1, 'Notes are required'),
 });
 
 type EnquiryFormValues = z.infer<typeof enquiryFormSchema>;
@@ -41,10 +42,8 @@ export function EnquiryForm() {
   const form = useForm<EnquiryFormValues>({
     resolver: zodResolver(enquiryFormSchema),
     defaultValues: {
-      name: '',
-      email: '',
-      phone: '',
-      message: '',
+      bookingDate: new Date(),
+      notes: '',
     },
   });
 
@@ -57,75 +56,77 @@ export function EnquiryForm() {
     console.log('Enquiry submitted:', values);
 
     toast({
-      title: 'Enquiry Sent!',
-      description: 'Thank you for your message. We will get back to you shortly.',
+      title: 'Enquiry Logged!',
+      description: 'The customer enquiry has been saved.',
     });
 
     setIsLoading(false);
-    form.reset();
+    form.reset({
+        bookingDate: new Date(),
+        notes: '',
+        enquiryType: undefined,
+    });
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Enquiry Form</CardTitle>
+        <CardTitle>Log Customer Enquiry</CardTitle>
         <CardDescription>
-          Have a question? Fill out the form below to get in touch with us.
+          Record booking interest from walk-ins or phone calls.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-               <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Address</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="john.doe@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
             <FormField
               control={form.control}
-              name="phone"
+              name="enquiryType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number (Optional)</FormLabel>
-                  <FormControl>
-                    <Input type="tel" placeholder="+1 (555) 123-4567" {...field} />
-                  </FormControl>
+                  <FormLabel>Enquiry Source</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a source" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="walk-in">Walk-in</SelectItem>
+                      <SelectItem value="by-phone">By Phone</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
+             <FormField
+                control={form.control}
+                name="bookingDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prospective Date</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="date" 
+                        {...field}
+                        value={field.value instanceof Date ? format(field.value, 'yyyy-MM-dd') : ''}
+                        onChange={(e) => field.onChange(new Date(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             <FormField
               control={form.control}
-              name="message"
+              name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Message</FormLabel>
+                  <FormLabel>Notes</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Please type your message here..."
+                      placeholder="Enter any details about the customer's request..."
                       className="min-h-[100px]"
                       {...field}
                     />
@@ -137,7 +138,7 @@ export function EnquiryForm() {
           </CardContent>
           <CardFooter>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Sending...' : 'Send Message'}
+              {isLoading ? 'Saving...' : 'Save Enquiry'}
             </Button>
           </CardFooter>
         </form>
