@@ -185,7 +185,7 @@ export default function DashboardPage() {
                         Click each section to see a detailed list of rooms.
                       </DialogDescription>
                     </DialogHeader>
-                    <OverviewCards rooms={displayRooms} />
+                    <OverviewCards rooms={displayRooms} allRooms={allRooms} />
                   </DialogContent>
                 </Dialog>
                 <DashboardCalendar
