@@ -162,50 +162,48 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-bold text-center tracking-tight">WELCOME</h1>
       {roomsLoading && <p>Loading rooms...</p>}
       {!roomsLoading && (
-        <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 md:col-span-1 flex flex-col gap-6">
-                    <Dialog>
-                        <DialogTrigger asChild>
-                        <Card className="cursor-pointer hover:bg-card/80 flex flex-col flex-grow">
-                            <CardHeader>
-                            <CardTitle>Room Details</CardTitle>
-                            <CardDescription>Click to see an overview of room statistics.</CardDescription>
-                            </CardHeader>
-                        </Card>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-4xl lg:max-w-6xl">
-                        <DialogHeader>
-                            <DialogTitle>Room Overview</DialogTitle>
-                            <DialogDescription>
-                            Click each section to see a detailed list of rooms.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <OverviewCards rooms={displayRooms} allRooms={allRooms} />
-                        </DialogContent>
-                    </Dialog>
-                    
-                    <DashboardCalendar
-                        selectedDate={selectedDate}
-                        setSelectedDate={setSelectedDate}
-                    />
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <div className="lg:col-span-1 md:col-span-1 flex flex-col gap-6">
+                <Dialog>
+                    <DialogTrigger asChild>
+                    <Card className="cursor-pointer hover:bg-card/80 flex flex-col flex-grow">
+                        <CardHeader>
+                        <CardTitle>Room Details</CardTitle>
+                        <CardDescription>Click to see an overview of room statistics.</CardDescription>
+                        </CardHeader>
+                    </Card>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-4xl lg:max-w-6xl">
+                    <DialogHeader>
+                        <DialogTitle>Room Overview</DialogTitle>
+                        <DialogDescription>
+                        Click each section to see a detailed list of rooms.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <OverviewCards rooms={displayRooms} allRooms={allRooms} />
+                    </DialogContent>
+                </Dialog>
+                
+                <DashboardCalendar
+                    selectedDate={selectedDate}
+                    setSelectedDate={setSelectedDate}
+                />
 
-                    <RoomAndPaymentLists
-                        rooms={displayRooms}
-                        allRooms={allRooms}
-                        onDeleteBooking={handleDeleteBooking}
-                        selectedDate={selectedDate}
-                    />
-                </div>
-                <div className="lg:col-span-2 md:col-span-2 flex flex-col gap-6">
-                     <RoomStatus
-                        selectedDate={selectedDate}
-                        rooms={displayRooms}
-                        onUpdateRoom={handleUpdateRoom}
-                    />
-                </div>
+                <RoomAndPaymentLists
+                    rooms={displayRooms}
+                    allRooms={allRooms}
+                    onDeleteBooking={handleDeleteBooking}
+                    selectedDate={selectedDate}
+                />
             </div>
-            <EnquiryForm />
+            <div className="lg:col-span-2 md:col-span-2 flex flex-col gap-6">
+                 <RoomStatus
+                    selectedDate={selectedDate}
+                    rooms={displayRooms}
+                    onUpdateRoom={handleUpdateRoom}
+                />
+                <EnquiryForm />
+            </div>
         </div>
       )}
     </div>

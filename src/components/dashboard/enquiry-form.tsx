@@ -28,6 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
+import { ScrollArea } from '../ui/scroll-area';
 
 const enquiryFormSchema = z.object({
   enquiryType: z.enum(['walk-in', 'by-phone'], { required_error: 'Please select an enquiry type.' }),
@@ -40,7 +41,8 @@ type EnquiryFormValues = z.infer<typeof enquiryFormSchema>;
 export function EnquiryForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
-  const [savedEnquiry, setSavedEnquiry] = React.useState<EnquiryFormValues | null>(null);
+  const [lastSavedEnquiry, setLastSavedEnquiry] = React.useState<EnquiryFormValues | null>(null);
+  const [loggedEnquiries, setLoggedEnquiries] = React.useState<EnquiryFormValues[]>([]);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   const form = useForm<EnquiryFormValues>({
@@ -58,7 +60,8 @@ export function EnquiryForm() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     console.log('Enquiry submitted:', values);
-    setSavedEnquiry(values);
+    setLastSavedEnquiry(values);
+    setLoggedEnquiries(prevEnquiries => [values, ...prevEnquiries]);
     setIsDialogOpen(true);
 
     toast({
@@ -152,6 +155,33 @@ export function EnquiryForm() {
         </Form>
       </Card>
       
+      {loggedEnquiries.length > 0 && (
+        <Card>
+            <CardHeader>
+                <CardTitle>Logged Enquiries</CardTitle>
+                <CardDescription>Recently saved customer enquiries for this session.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ScrollArea className="h-[240px] pr-4">
+                    <div className="space-y-4">
+                        {loggedEnquiries.map((enquiry, index) => (
+                            <div key={index} className="p-3 bg-muted/50 rounded-lg border">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="font-semibold capitalize">{enquiry.enquiryType.replace('-', ' ')}</p>
+                                        <p className="text-sm text-muted-foreground">{format(enquiry.bookingDate, 'PPP')}</p>
+                                    </div>
+                                    <Badge variant="secondary">Logged</Badge>
+                                </div>
+                                <p className="text-sm mt-2">{enquiry.notes}</p>
+                            </div>
+                        ))}
+                    </div>
+                </ScrollArea>
+            </CardContent>
+        </Card>
+      )}
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
             <DialogHeader>
@@ -160,19 +190,19 @@ export function EnquiryForm() {
                     The following enquiry details have been logged.
                 </DialogDescription>
             </DialogHeader>
-            {savedEnquiry && (
+            {lastSavedEnquiry && (
                  <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="source" className="text-right">Source</Label>
-                        <p id="source" className="col-span-3 font-semibold capitalize">{savedEnquiry.enquiryType.replace('-', ' ')}</p>
+                        <p id="source" className="col-span-3 font-semibold capitalize">{lastSavedEnquiry.enquiryType.replace('-', ' ')}</p>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                          <Label htmlFor="date" className="text-right">Date</Label>
-                        <p id="date" className="col-span-3 font-semibold">{format(savedEnquiry.bookingDate, 'PPP')}</p>
+                        <p id="date" className="col-span-3 font-semibold">{format(lastSavedEnquiry.bookingDate, 'PPP')}</p>
                     </div>
                      <div className="grid grid-cols-4 items-start gap-4">
                          <Label htmlFor="notes" className="text-right mt-1">Notes</Label>
-                        <p id="notes" className="col-span-3 bg-muted/50 p-2 rounded-md text-sm">{savedEnquiry.notes}</p>
+                        <p id="notes" className="col-span-3 bg-muted/50 p-2 rounded-md text-sm">{lastSavedEnquiry.notes}</p>
                     </div>
                  </div>
             )}
