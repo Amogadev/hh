@@ -42,11 +42,13 @@ function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
 export function RoomStatusGrid({
   rooms,
   onUpdateRoom,
+  onDeleteBooking,
   selectedDate,
 }: {
   selectedDate: Date;
   rooms: Room[];
   onUpdateRoom: (updatedRoom: Partial<Room> & { id: string }) => void;
+  onDeleteBooking: (roomId: string) => void;
 }) {
   const [roomForBooking, setRoomForBooking] = React.useState<Room | null>(null);
   const [roomForManagement, setRoomForManagement] = React.useState<Room | null>(null);
@@ -141,6 +143,7 @@ export function RoomStatusGrid({
             }
           }}
           onUpdateRoom={onUpdateRoom}
+          onDeleteBooking={onDeleteBooking}
         />
       )}
     </>

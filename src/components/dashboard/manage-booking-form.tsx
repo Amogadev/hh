@@ -39,6 +39,7 @@ type ManageBookingFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onUpdateRoom: (updatedRoom: Partial<Room> & { id: string }) => void;
+  onDeleteBooking: (roomId: string) => void;
 };
 
 function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
@@ -50,6 +51,7 @@ export function ManageBookingForm({
   isOpen,
   onOpenChange,
   onUpdateRoom,
+  onDeleteBooking,
 }: ManageBookingFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
@@ -123,6 +125,16 @@ export function ManageBookingForm({
     onOpenChange(false);
   };
   
+  const handleCancelBooking = () => {
+    onDeleteBooking(room.id);
+    toast({
+        variant: "destructive",
+        title: "Booking Cancelled",
+        description: `The booking for ${room.name} has been cancelled.`,
+    });
+    onOpenChange(false);
+  }
+
   const canCheckIn = room.status === 'Booked' && room.booking && !room.booking.checkedIn && 
     (isAfter(startOfDay(new Date()), startOfDay(getDateFromTimestampOrDate(room.booking.checkIn))) || isEqual(startOfDay(new Date()), startOfDay(getDateFromTimestampOrDate(room.booking.checkIn))));
 
@@ -182,7 +194,9 @@ export function ManageBookingForm({
                         </FormItem>
                     )}
                     />
-                    <DialogFooter>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button type="button" variant="destructive" onClick={handleCancelBooking}>Cancel Booking</Button>
+                        <div className="flex-grow"></div>
                         {canCheckIn && <Button type="button" variant="outline" onClick={handleCheckIn}>Check In</Button>}
                         <Button type="submit" disabled={isLoading}>
                             {isLoading ? 'Processing...' : 'Make Payment'}
@@ -192,9 +206,12 @@ export function ManageBookingForm({
             </Form>
         )}
          {payment.pending <= 0 && (
-            <DialogFooter className="flex-col gap-2 sm:flex-row">
-                 {canCheckIn && <Button type="button" onClick={handleCheckIn} className='w-full'>Check In</Button>}
-                 <p className="text-center font-semibold text-green-500 py-4 w-full">This booking is fully paid.</p>
+            <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between">
+                <Button type="button" variant="destructive" onClick={handleCancelBooking}>Cancel Booking</Button>
+                <div className="flex items-center gap-2">
+                 {canCheckIn && <Button type="button" onClick={handleCheckIn} className='w-full sm:w-auto'>Check In</Button>}
+                 <p className="text-center font-semibold text-green-500 py-4 w-full sm:w-auto">This booking is fully paid.</p>
+                </div>
             </DialogFooter>
         )}
       </DialogContent>

@@ -12,6 +12,7 @@ import {
   writeBatch,
   getDocs,
   Timestamp,
+  updateDoc,
 } from 'firebase/firestore';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { isWithinInterval, startOfDay } from 'date-fns';
@@ -21,6 +22,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { EnquiryForm } from '@/components/dashboard/enquiry-form';
 import { Button } from '@/components/ui/button';
 import { FileDown } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const HOTEL_ID = 'hotel-123';
 const baseRooms: Omit<Room, 'status' | 'effectiveStatus'>[] = [
@@ -65,6 +67,7 @@ export default function DashboardPage() {
     new Date()
   );
   const firestore = useFirestore();
+  const { toast } = useToast();
 
   const roomsCollectionRef = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -106,9 +109,16 @@ export default function DashboardPage() {
   const handleDeleteBooking = (roomId: string) => {
     if (!firestore) return;
     const roomRef = doc(firestore, 'hotels', HOTEL_ID, 'rooms', roomId);
+    // We use updateDoc and set the fields to null instead of using FieldValue.delete()
+    // because we want to keep the 'booking' and 'payment' fields in the document structure.
     updateDocumentNonBlocking(roomRef, {
       booking: null,
       payment: null,
+    });
+    toast({
+        variant: "destructive",
+        title: "Booking Cancelled",
+        description: `The booking for room ${roomId} has been cancelled.`,
     });
   };
 
@@ -176,6 +186,7 @@ export default function DashboardPage() {
                     selectedDate={selectedDate}
                     rooms={displayRooms}
                     onUpdateRoom={handleUpdateRoom}
+                    onDeleteBooking={handleDeleteBooking}
                 />
             </div>
             <div className="lg:col-span-1 md:col-span-1 flex flex-col gap-6">

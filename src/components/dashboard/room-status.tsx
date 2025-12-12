@@ -13,9 +13,10 @@ type RoomStatusProps = {
   selectedDate: Date;
   rooms: Room[];
   onUpdateRoom: (updatedRoom: Partial<Room> & { id: string }) => void;
+  onDeleteBooking: (roomId: string) => void;
 };
 
-export function RoomStatus({ selectedDate, rooms, onUpdateRoom }: RoomStatusProps) {
+export function RoomStatus({ selectedDate, rooms, onUpdateRoom, onDeleteBooking }: RoomStatusProps) {
   return (
     <Card>
       <CardHeader>
@@ -25,7 +26,12 @@ export function RoomStatus({ selectedDate, rooms, onUpdateRoom }: RoomStatusProp
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <RoomStatusGrid selectedDate={selectedDate} rooms={rooms} onUpdateRoom={onUpdateRoom} />
+        <RoomStatusGrid 
+            selectedDate={selectedDate} 
+            rooms={rooms} 
+            onUpdateRoom={onUpdateRoom} 
+            onDeleteBooking={onDeleteBooking} 
+        />
       </CardContent>
     </Card>
   );
