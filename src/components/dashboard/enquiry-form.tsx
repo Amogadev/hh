@@ -74,8 +74,7 @@ export function EnquiryForm() {
     if (!enquiriesCollectionRef || !user) return null;
     return query(
       enquiriesCollectionRef, 
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.uid)
       );
   }, [enquiriesCollectionRef, user]);
 
@@ -315,5 +314,3 @@ export function EnquiryForm() {
     </TooltipProvider>
   );
 }
-
-    

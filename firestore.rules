@@ -97,7 +97,7 @@ service cloud.firestore {
     match /enquiries/{enquiryId} {
       allow read, update, delete: if isOwner(resource.data.userId);
       allow create: if isOwner(request.resource.data.userId);
-      allow list: if isSignedIn() && request.query.filters[0][2] == request.auth.uid;
+      allow list: if isSignedIn() && request.query.where.userId == request.auth.uid;
     }
   }
 }
