@@ -162,7 +162,14 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-bold text-center tracking-tight">WELCOME</h1>
       {roomsLoading && <p>Loading rooms...</p>}
       {!roomsLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            <div className="lg:col-span-2 md:col-span-2 flex flex-col gap-6">
+                 <RoomStatus
+                    selectedDate={selectedDate}
+                    rooms={displayRooms}
+                    onUpdateRoom={handleUpdateRoom}
+                />
+            </div>
             <div className="lg:col-span-1 md:col-span-1 flex flex-col gap-6">
                 <Dialog>
                     <DialogTrigger asChild>
@@ -193,16 +200,8 @@ export default function DashboardPage() {
                     rooms={displayRooms}
                     allRooms={allRooms}
                     onDeleteBooking={handleDeleteBooking}
-                    selectedDate={selectedDate}
                 />
-            </div>
-            <div className="lg:col-span-2 md:col-span-2 flex flex-col gap-6">
-                 <RoomStatus
-                    selectedDate={selectedDate}
-                    rooms={displayRooms}
-                    onUpdateRoom={handleUpdateRoom}
-                />
-                <EnquiryForm />
+                 <EnquiryForm />
             </div>
         </div>
       )}

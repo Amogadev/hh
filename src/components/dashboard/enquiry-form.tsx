@@ -82,9 +82,9 @@ export function EnquiryForm() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Log Customer Enquiry</CardTitle>
+          <CardTitle>Customer Enquiry</CardTitle>
           <CardDescription>
-            Record booking interest from walk-ins or phone calls.
+            Log booking interest from walk-ins or phone calls.
           </CardDescription>
         </CardHeader>
         <Form {...form}>
@@ -147,42 +147,36 @@ export function EnquiryForm() {
                 )}
               />
             </CardContent>
-            <CardFooter>
-              <Button type="submit" disabled={isLoading}>
+            <CardFooter className="flex-col items-start gap-4">
+               <Button type="submit" disabled={isLoading}>
                 {isLoading ? 'Saving...' : 'Save Enquiry'}
               </Button>
+               {loggedEnquiries.length > 0 && (
+                <div className="w-full space-y-4 pt-4 border-t">
+                    <h4 className="text-sm font-semibold text-muted-foreground">Logged Enquiries (Session)</h4>
+                    <ScrollArea className="h-[150px] pr-4">
+                        <div className="space-y-4">
+                            {loggedEnquiries.map((enquiry, index) => (
+                                <div key={index} className="p-3 bg-muted/50 rounded-lg border">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <p className="font-semibold capitalize">{enquiry.enquiryType.replace('-', ' ')}</p>
+                                            <p className="text-sm text-muted-foreground">{format(enquiry.bookingDate, 'PPP')}</p>
+                                        </div>
+                                        <Badge variant="secondary">Logged</Badge>
+                                    </div>
+                                    <p className="text-sm mt-2">{enquiry.notes}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                </div>
+              )}
             </CardFooter>
           </form>
         </Form>
       </Card>
       
-      {loggedEnquiries.length > 0 && (
-        <Card>
-            <CardHeader>
-                <CardTitle>Logged Enquiries</CardTitle>
-                <CardDescription>Recently saved customer enquiries for this session.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <ScrollArea className="h-[240px] pr-4">
-                    <div className="space-y-4">
-                        {loggedEnquiries.map((enquiry, index) => (
-                            <div key={index} className="p-3 bg-muted/50 rounded-lg border">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <p className="font-semibold capitalize">{enquiry.enquiryType.replace('-', ' ')}</p>
-                                        <p className="text-sm text-muted-foreground">{format(enquiry.bookingDate, 'PPP')}</p>
-                                    </div>
-                                    <Badge variant="secondary">Logged</Badge>
-                                </div>
-                                <p className="text-sm mt-2">{enquiry.notes}</p>
-                            </div>
-                        ))}
-                    </div>
-                </ScrollArea>
-            </CardContent>
-        </Card>
-      )}
-
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
             <DialogHeader>
