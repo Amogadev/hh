@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { addDays, format, isAfter, isBefore, isEqual } from 'date-fns';
+import { addDays, format, isAfter, isBefore, isEqual, startOfDay, endOfDay } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -60,30 +60,30 @@ export function ReportDetails({ allRooms }: ReportDetailsProps) {
   const { data: loggedEnquiries } = useCollection<EnquiryDocument>(userEnquiriesQuery);
 
   const handleGenerateReport = () => {
-    const { from, to } = dateRange;
+    const fromDate = startOfDay(dateRange.from);
+    const toDate = endOfDay(dateRange.to);
     
     // Filter Bookings
     const filteredBookings = allRooms.filter(room => {
         if (!room.booking) return false;
         const checkIn = getDateFromTimestampOrDate(room.booking.checkIn);
-        // Check for any overlap in date ranges
-        return (isAfter(checkIn, from) || isEqual(checkIn, from)) && 
-               (isBefore(checkIn, to) || isEqual(checkIn, to));
+        return (isAfter(checkIn, fromDate) || isEqual(checkIn, fromDate)) && 
+               (isBefore(checkIn, toDate) || isEqual(checkIn, toDate));
     });
 
     // Filter Payments
     const filteredPayments = allRooms.filter(room => {
         if (!room.payment) return false;
         const paymentDate = new Date(room.payment.date);
-        return (isAfter(paymentDate, from) || isEqual(paymentDate, from)) && 
-               (isBefore(paymentDate, to) || isEqual(paymentDate, to));
+        return (isAfter(paymentDate, fromDate) || isEqual(paymentDate, fromDate)) && 
+               (isBefore(paymentDate, toDate) || isEqual(paymentDate, toDate));
     });
 
     // Filter Enquiries
     const filteredEnquiries = loggedEnquiries?.filter(enquiry => {
         const enquiryDate = getDateFromTimestampOrDate(enquiry.createdAt);
-        return (isAfter(enquiryDate, from) || isEqual(enquiryDate, from)) &&
-               (isBefore(enquiryDate, to) || isEqual(enquiryDate, to));
+        return (isAfter(enquiryDate, fromDate) || isEqual(enquiryDate, fromDate)) &&
+               (isBefore(enquiryDate, toDate) || isEqual(enquiryDate, toDate));
     }) || [];
 
     setReportData({
