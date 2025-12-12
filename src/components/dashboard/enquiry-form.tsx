@@ -29,6 +29,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 
 const enquiryFormSchema = z.object({
   enquiryType: z.enum(['walk-in', 'by-phone'], { required_error: 'Please select an enquiry type.' }),
