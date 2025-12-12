@@ -25,6 +25,7 @@ type RoomAndPaymentListsProps = {
 const statusVariants: { [key in Room['status']]: string } = {
   Available: "bg-green-900/50 text-green-300",
   Occupied: "bg-red-900/50 text-red-300",
+  Booked: "bg-blue-900/50 text-blue-300",
 };
 
 function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
@@ -33,7 +34,7 @@ function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
 
 export function RoomAndPaymentLists({ rooms, onDeleteBooking }: RoomAndPaymentListsProps) {
   const occupiedRooms = rooms.filter((room) => room.status === 'Occupied' && room.booking);
-  const bookedForFuture = rooms.filter(room => room.booking && new Date() < getDateFromTimestampOrDate(room.booking.checkIn) && room.status === 'Available');
+  const bookedRooms = rooms.filter(room => room.status === 'Booked' && room.booking);
   const availableRooms = rooms.filter((room) => room.status === 'Available' && !room.booking);
   const paymentHistory = rooms.filter(r => r.payment && r.booking);
 
@@ -108,11 +109,11 @@ export function RoomAndPaymentLists({ rooms, onDeleteBooking }: RoomAndPaymentLi
           </AccordionItem>
           {/* Booked Rooms */}
           <AccordionItem value="booked">
-            <AccordionTrigger className='font-semibold'>Booked ({bookedForFuture.length})</AccordionTrigger>
+            <AccordionTrigger className='font-semibold'>Booked ({bookedRooms.length})</AccordionTrigger>
             <AccordionContent>
-              {bookedForFuture.length > 0 ? (
+              {bookedRooms.length > 0 ? (
                 <ul className="space-y-2">
-                  {bookedForFuture.map(room => (
+                  {bookedRooms.map(room => (
                      <li key={room.id} className="flex justify-between items-center text-sm">
                        <span>{room.name}</span>
                        <div className="text-xs text-muted-foreground text-right">
@@ -124,7 +125,7 @@ export function RoomAndPaymentLists({ rooms, onDeleteBooking }: RoomAndPaymentLi
                     </li>
                   ))}
                 </ul>
-              ) : <p className="text-sm text-muted-foreground">No rooms booked for the future.</p>}
+              ) : <p className="text-sm text-muted-foreground">No rooms booked for this date.</p>}
             </AccordionContent>
           </AccordionItem>
           {/* Available Rooms */}

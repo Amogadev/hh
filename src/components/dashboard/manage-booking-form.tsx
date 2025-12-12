@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import type { Room, Payment } from '@/lib/data';
-import { format } from 'date-fns';
+import { format, isAfter, isEqual, startOfDay } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 
 const manageBookingSchema = z.object({
@@ -107,6 +107,26 @@ export function ManageBookingForm({
     form.reset();
   };
 
+  const handleCheckIn = () => {
+    const updatedRoom: Partial<Room> & { id: string } = {
+        id: room.id,
+        booking: {
+            ...booking,
+            checkedIn: true,
+        },
+    };
+    onUpdateRoom(updatedRoom);
+    toast({
+        title: "Checked In!",
+        description: `${booking.guestName} has checked into ${room.name}.`,
+    });
+    onOpenChange(false);
+  };
+  
+  const canCheckIn = room.status === 'Booked' && room.booking && !room.booking.checkedIn && 
+    (isAfter(startOfDay(new Date()), startOfDay(getDateFromTimestampOrDate(room.booking.checkIn))) || isEqual(startOfDay(new Date()), startOfDay(getDateFromTimestampOrDate(room.booking.checkIn))));
+
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -163,6 +183,7 @@ export function ManageBookingForm({
                     )}
                     />
                     <DialogFooter>
+                        {canCheckIn && <Button type="button" variant="outline" onClick={handleCheckIn}>Check In</Button>}
                         <Button type="submit" disabled={isLoading}>
                             {isLoading ? 'Processing...' : 'Make Payment'}
                         </Button>
@@ -171,7 +192,10 @@ export function ManageBookingForm({
             </Form>
         )}
          {payment.pending <= 0 && (
-            <p className="text-center font-semibold text-green-500 py-4">This booking is fully paid.</p>
+            <DialogFooter className="flex-col gap-2 sm:flex-row">
+                 {canCheckIn && <Button type="button" onClick={handleCheckIn} className='w-full'>Check In</Button>}
+                 <p className="text-center font-semibold text-green-500 py-4 w-full">This booking is fully paid.</p>
+            </DialogFooter>
         )}
       </DialogContent>
     </Dialog>

@@ -9,10 +9,10 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Room, Payment } from '@/lib/data';
-import { Bed, User, Calendar } from 'lucide-react';
+import { Bed, User, Calendar, KeyRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
+import { format, startOfDay, isAfter, isEqual } from 'date-fns';
 import { BookingForm, type BookingFormValues } from './booking-form';
 import { ManageBookingForm } from './manage-booking-form';
 import { Timestamp } from 'firebase/firestore';
@@ -28,6 +28,11 @@ const statusConfig = {
     icon: Bed,
     iconClass: 'text-red-400',
   },
+  Booked: {
+    badge: 'bg-blue-900/50 text-blue-300',
+    icon: KeyRound,
+    iconClass: 'text-blue-400',
+  },
 } as const;
 
 function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
@@ -37,6 +42,7 @@ function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
 export function RoomStatusGrid({
   rooms,
   onUpdateRoom,
+  selectedDate,
 }: {
   selectedDate: Date;
   rooms: Room[];
@@ -67,8 +73,21 @@ export function RoomStatusGrid({
         guestName: values.guestName,
         checkIn: Timestamp.fromDate(values.checkIn),
         checkOut: Timestamp.fromDate(values.checkOut),
+        checkedIn: false, // Explicitly set checkedIn to false on new booking
       },
       payment: newPayment
+    };
+    onUpdateRoom(updatedRoom);
+  };
+
+  const handleCheckIn = (room: Room) => {
+    if (!room.booking) return;
+    const updatedRoom: Partial<Room> & { id: string } = {
+      id: room.id,
+      booking: {
+        ...room.booking,
+        checkedIn: true,
+      },
     };
     onUpdateRoom(updatedRoom);
   };
@@ -77,20 +96,25 @@ export function RoomStatusGrid({
     <>
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {rooms.map((room) => {
-          const canBook = room.status === 'Available';
+          const isBooked = room.status === 'Booked';
+          const canCheckIn = isBooked && room.booking && 
+            (isAfter(startOfDay(selectedDate), startOfDay(getDateFromTimestampOrDate(room.booking.checkIn))) || isEqual(startOfDay(selectedDate), startOfDay(getDateFromTimestampOrDate(room.booking.checkIn))));
 
           return (
             <RoomCard
               key={room.id}
               room={room}
               onButtonClick={() => {
-                if (canBook) {
+                if (room.status === 'Available') {
                   setRoomForBooking(room);
-                } else if (room.booking) { 
+                } else if (isBooked && canCheckIn) {
+                  handleCheckIn(room);
+                } else if (room.status === 'Occupied' || room.status === 'Booked') { 
                   setRoomForManagement(room);
                 }
               }}
-              canBook={canBook}
+              isBooked={isBooked}
+              canCheckIn={canCheckIn}
             />
           );
         })}
@@ -126,14 +150,28 @@ export function RoomStatusGrid({
 function RoomCard({
   room,
   onButtonClick,
-  canBook,
+  isBooked,
+  canCheckIn,
 }: {
   room: Room;
   onButtonClick: () => void;
-  canBook: boolean;
+  isBooked: boolean;
+  canCheckIn: boolean;
 }) {
   const config = statusConfig[room.status];
   const Icon = config.icon;
+
+  let buttonContent = 'Book Now';
+  if (isBooked) {
+    buttonContent = 'Manage';
+  }
+  if (canCheckIn) {
+    buttonContent = 'Check In';
+  }
+  if (room.status === 'Occupied') {
+    buttonContent = 'Manage';
+  }
+
 
   return (
     <Card className="flex flex-col">
@@ -174,10 +212,11 @@ function RoomCard({
       <CardFooter>
         <Button
           className="w-full"
-          disabled={!canBook && !room.booking}
+          disabled={room.status === 'Booked' && !canCheckIn}
           onClick={onButtonClick}
+          variant={canCheckIn ? 'default' : 'secondary'}
         >
-          {canBook ? 'Book Now' : 'Manage'}
+          {buttonContent}
         </Button>
       </CardFooter>
     </Card>

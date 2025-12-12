@@ -4,11 +4,12 @@ import { Timestamp } from "firebase/firestore";
 export type Room = {
   id: string;
   name: string;
-  status: 'Available' | 'Occupied';
+  status: 'Available' | 'Occupied' | 'Booked';
   booking?: {
     checkIn: Date | Timestamp;
     checkOut: Date | Timestamp;
     guestName: string;
+    checkedIn?: boolean;
   };
   payment?: Payment;
 };

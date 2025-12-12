@@ -36,7 +36,7 @@ function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
 function getRoomStatusForDate(
   room: Room,
   date: Date
-): 'Available' | 'Occupied' {
+): 'Available' | 'Occupied' | 'Booked' {
   if (room.booking) {
     const checkIn = startOfDay(getDateFromTimestampOrDate(room.booking.checkIn));
     const checkOut = startOfDay(
@@ -44,10 +44,12 @@ function getRoomStatusForDate(
     );
     const selectedDay = startOfDay(date);
 
-    // A room is occupied if the selected date is between check-in (inclusive)
-    // and check-out (exclusive).
     if (selectedDay >= checkIn && selectedDay < checkOut) {
-      return 'Occupied';
+      // Within the booking period
+      if (room.booking.checkedIn) {
+        return 'Occupied';
+      }
+      return 'Booked';
     }
   }
   // Otherwise, it's available. This includes the day of check-out.
@@ -162,7 +164,7 @@ export default function DashboardPage() {
                     <DialogHeader>
                       <DialogTitle>Room Overview</DialogTitle>
                       <DialogDescription>
-                        Click a category to view the detailed list of rooms.
+                        Click each section to see a detailed list of rooms.
                       </DialogDescription>
                     </DialogHeader>
                     <OverviewCards rooms={displayRooms} />
