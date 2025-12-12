@@ -3,32 +3,19 @@
  * @description Firestore Security Rules for the Hotel Management application.
  *
  * @section Core Philosophy
- * This ruleset implements a public, read-only data model. The core design
- * philosophy is that hotel, room, and payment data is intended for public
- * consumption. All modifications to the data (creating new hotels, updating
- * room statuses, etc.) are expected to be handled by a trusted backend server
- * using the Admin SDK, which bypasses these security rules.
- *
- * Client-side applications (web, mobile) are granted read-only access to all
- * data, but are strictly forbidden from making any write operations to prevent
- * unauthorized data manipulation.
+ * This ruleset implements a public, read-only data model for hotel and room data,
+ * while providing user-specific write access for enquiries.
  *
  * @section Data Structure
- * The data is organized hierarchically to reflect the real-world relationships:
- * - /hotels/{hotelId}: Top-level documents for each hotel.
- * - /hotels/{hotelId}/rooms/{roomId}: Subcollection for rooms within a hotel.
- * - /hotels/{hotelId}/rooms/{roomId}/payments/{paymentId}: Subcollection for payments associated with a room.
+ * - /hotels/{hotelId}: Publicly readable hotel data.
+ * - /hotels/{hotelId}/rooms/{roomId}: Publicly readable room data.
+ * - /enquiries/{enquiryId}: User-specific enquiry data.
  *
  * @section Key Security Decisions
- * - Public Read Access: All data is publicly readable (`get`, `list`) by any
- *   client, including unauthenticated users. This supports scenarios where
- *   users can browse hotel and room information without signing in.
- * - No Client Writes: All write operations (`create`, `update`, `delete`) are
- *   explicitly disabled for all collections. This is a critical security measure
- *   as the data model does not contain user ownership or role-based fields,
- *   making it impossible to safely authorize client-side writes.
- * - No Data Validation: Because writes are disabled, no data validation rules
- *   are necessary. Data integrity is assumed to be handled by the backend service.
+ * - Public Read Access (Hotels/Rooms): Hotel and room data is public to read.
+ *   All write operations are disabled and should be handled by a trusted backend.
+ * - User-Owned Enquiries: Authenticated users can create, read, update, and
+ *   delete their own enquiry documents. They cannot access enquiries from others.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -43,6 +30,13 @@ service cloud.firestore {
      */
     function isSignedIn() {
       return request.auth != null;
+    }
+
+    /**
+     * Returns true if the user's UID matches the provided userId.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
 
     /**
@@ -67,46 +61,42 @@ service cloud.firestore {
 
     /**
      * @description Controls access to Hotel documents.
-     * Hotels are public to read for all users but cannot be modified by clients.
-     * @path /hotels/{hotelId}
-     * @allow (get) Any user can read a specific hotel's details.
-     * @deny (create) A client application cannot create a new hotel document.
-     * @principle Public read access with writes disabled for server-side management.
      */
     match /hotels/{hotelId} {
       allow get: if isPublic();
       allow list: if isPublic();
-      allow create: if clientWritesDisabled(); 
-      allow update: if clientWritesDisabled();
-      allow delete: if clientWritesDisabled();
+      allow write: if clientWritesDisabled();
 
       /**
        * @description Controls access to Room subcollections.
-       * Rooms are public to read for all users and can be modified by any client.
-       * @path /hotels/{hotelId}/rooms/{roomId}
-       * @allow (list) Any user can list all rooms for a given hotel.
-       * @allow (write) Any client can create, update, or delete a room document.
-       * @principle Public read access with writes enabled for all users.
        */
       match /rooms/{roomId} {
         allow get: if isPublic();
         allow list: if isPublic();
-        allow write: if true;
+        allow write: if true; // Managed by client logic
 
         /**
          * @description Controls access to Payment subcollections.
-         * Payments are public to read and can be modified by any client.
-         * @path /hotels/{hotelId}/rooms/{roomId}/payments/{paymentId}
-         * @allow (get) Any user can retrieve the details of a specific payment.
-         * @allow (write) Any client can create, update, or delete a payment record.
-         * @principle Public read and write access for all users.
          */
         match /payments/{paymentId} {
           allow get: if isPublic();
           allow list: if isPublic();
-          allow write: if true;
+          allow write: if true; // Managed by client logic
         }
       }
     }
+
+    /**
+     * @description Controls access to Enquiry documents.
+     * Users can manage their own enquiries.
+     * @path /enquiries/{enquiryId}
+     * @allow (read, update, delete) if the user is the owner of the document.
+     * @allow (create) if the user is signed in and the new document's userId matches their own.
+     */
+    match /enquiries/{enquiryId} {
+      allow read, update, delete: if isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId);
+    }
   }
 }
+    

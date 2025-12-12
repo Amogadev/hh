@@ -107,6 +107,41 @@
         "paymentDate",
         "paymentMethod"
       ]
+    },
+    "Enquiry": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Enquiry",
+      "type": "object",
+      "description": "Represents a customer enquiry for a potential booking.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Enquiry."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who logged the enquiry."
+        },
+        "enquiryType": {
+          "type": "string",
+          "enum": ["walk-in", "by-phone"]
+        },
+        "bookingDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The prospective booking date."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Details about the customer's request."
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp when the enquiry was created."
+        }
+      },
+      "required": ["userId", "enquiryType", "bookingDate", "notes", "createdAt"]
     }
   },
   "auth": {
@@ -176,8 +211,25 @@
             }
           ]
         }
+      },
+       {
+        "path": "/enquiries/{enquiryId}",
+        "definition": {
+          "entityName": "Enquiry",
+          "schema": {
+            "$ref": "#/backend/entities/Enquiry"
+          },
+          "description": "Stores customer booking enquiries.",
+          "params": [
+            {
+              "name": "enquiryId",
+              "description": "The unique identifier of the enquiry."
+            }
+          ]
+        }
       }
     ],
     "reasoning": "The Firestore data structure is designed to manage hotel data including hotels, rooms and payments. It prioritizes authorization independence and simplifies security rules. Each entity is stored in its own collection. Path-based ownership is used where appropriate to ensure data integrity and security. Hotels do not have an owner and are considered globally available. Rooms belong to hotels, and payments belong to rooms, reflecting the relationships described in the input `entities`.\n\nTo ensure Authorization Independence, there is no denormalization required as the entities are accessed globally (Hotel), or through path-based ownership (Rooms and Payments). This eliminates the need for `get()` calls in security rules.  The structure supports secure `list` operations via Structural Segregation, as each collection stores a single entity type with homogeneous security requirements.  The paths are predictable and follow a clear hierarchy which helps readability and debuggability."
   }
 }
+    

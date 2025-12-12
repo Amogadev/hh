@@ -32,24 +32,54 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { AlarmClock, Pencil, Trash2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-
+import { useAuth, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { addDoc, collection, deleteDoc, doc, serverTimestamp, updateDoc, Timestamp, query, where, orderBy } from 'firebase/firestore';
+import { updateDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const enquiryFormSchema = z.object({
   enquiryType: z.enum(['walk-in', 'by-phone'], { required_error: 'Please select an enquiry type.' }),
   bookingDate: z.coerce.date({ required_error: 'A date is required.' }),
   notes: z.string().min(1, 'Notes are required'),
-  id: z.string().optional(), // Add ID for editing
+  id: z.string().optional(),
 });
 
 type EnquiryFormValues = z.infer<typeof enquiryFormSchema>;
 
+type EnquiryDocument = {
+  id: string;
+  userId: string;
+  enquiryType: 'walk-in' | 'by-phone';
+  bookingDate: Timestamp;
+  notes: string;
+  createdAt: Timestamp;
+};
+
 export function EnquiryForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
-  const [lastSavedEnquiry, setLastSavedEnquiry] = React.useState<EnquiryFormValues | null>(null);
-  const [loggedEnquiries, setLoggedEnquiries] = React.useState<EnquiryFormValues[]>([]);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingEnquiryId, setEditingEnquiryId] = React.useState<string | null>(null);
+  const [lastSavedEnquiry, setLastSavedEnquiry] = React.useState<EnquiryFormValues | null>(null);
+
+  const firestore = useFirestore();
+  const auth = useAuth();
+  const user = auth.currentUser;
+
+  const enquiriesCollectionRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'enquiries');
+  }, [firestore]);
+
+  const userEnquiriesQuery = useMemoFirebase(() => {
+    if (!enquiriesCollectionRef || !user) return null;
+    return query(
+      enquiriesCollectionRef, 
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
+      );
+  }, [enquiriesCollectionRef, user]);
+
+  const { data: loggedEnquiries, isLoading: enquiriesLoading } = useCollection<EnquiryDocument>(userEnquiriesQuery);
 
   const form = useForm<EnquiryFormValues>({
     resolver: zodResolver(enquiryFormSchema),
@@ -60,23 +90,27 @@ export function EnquiryForm() {
   });
 
   async function onSubmit(values: EnquiryFormValues) {
+    if (!firestore || !user) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Not authenticated.' });
+      return;
+    }
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const enquiryData = {
+      enquiryType: values.enquiryType,
+      bookingDate: Timestamp.fromDate(values.bookingDate),
+      notes: values.notes,
+      userId: user.uid,
+    };
 
     if (editingEnquiryId) {
-      // Update existing enquiry
-      setLoggedEnquiries(prev => 
-        prev.map(enquiry => 
-          enquiry.id === editingEnquiryId ? { ...values, id: editingEnquiryId } : enquiry
-        )
-      );
+      const enquiryRef = doc(firestore, 'enquiries', editingEnquiryId);
+      updateDocumentNonBlocking(enquiryRef, enquiryData);
       toast({ title: 'Enquiry Updated!', description: 'The enquiry details have been updated.' });
       setEditingEnquiryId(null);
     } else {
-      // Add new enquiry
-      const newEnquiry = { ...values, id: `enq-${Date.now()}` };
-      setLastSavedEnquiry(newEnquiry);
-      setLoggedEnquiries(prevEnquiries => [newEnquiry, ...prevEnquiries]);
+      addDocumentNonBlocking(collection(firestore, 'enquiries'), { ...enquiryData, createdAt: serverTimestamp() });
+      setLastSavedEnquiry(values);
       setIsDialogOpen(true);
       toast({ title: 'Enquiry Logged!', description: 'The customer enquiry has been saved.' });
     }
@@ -89,14 +123,18 @@ export function EnquiryForm() {
     });
   }
   
-  const handleEdit = (enquiry: EnquiryFormValues) => {
-    setEditingEnquiryId(enquiry.id!);
-    form.reset(enquiry);
+  const handleEdit = (enquiry: EnquiryDocument) => {
+    setEditingEnquiryId(enquiry.id);
+    form.reset({
+      ...enquiry,
+      bookingDate: enquiry.bookingDate.toDate(),
+    });
   };
 
   const handleDelete = (id: string) => {
-    setLoggedEnquiries(prev => prev.filter(enquiry => enquiry.id !== id));
-    toast({ title: 'Enquiry Deleted', description: 'The enquiry has been removed from the list.', variant: 'destructive' });
+    if (!firestore) return;
+    deleteDocumentNonBlocking(doc(firestore, 'enquiries', id));
+    toast({ title: 'Enquiry Deleted', description: 'The enquiry has been removed.', variant: 'destructive' });
   };
   
   const cancelEdit = () => {
@@ -188,14 +226,14 @@ export function EnquiryForm() {
                     </Button>
                   )}
                </div>
-               {loggedEnquiries.length > 0 && (
+               {(loggedEnquiries && loggedEnquiries.length > 0) && (
                 <div className="w-full space-y-4 pt-4 border-t">
-                    <h4 className="text-sm font-semibold text-muted-foreground">Logged Enquiries (Session)</h4>
+                    <h4 className="text-sm font-semibold text-muted-foreground">Logged Enquiries</h4>
                     <ScrollArea className="h-[150px] pr-4">
                         <div className="space-y-4">
                             {loggedEnquiries.map((enquiry) => {
                                 const today = new Date();
-                                const bookingDate = enquiry.bookingDate;
+                                const bookingDate = enquiry.bookingDate.toDate();
                                 const daysDifference = differenceInCalendarDays(bookingDate, today);
 
                                 const showNotification = daysDifference >= 0 && daysDifference <= 3;
@@ -205,7 +243,7 @@ export function EnquiryForm() {
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <p className="font-semibold capitalize">{enquiry.enquiryType.replace('-', ' ')}</p>
-                                            <p className="text-sm text-muted-foreground">{format(enquiry.bookingDate, 'PPP')}</p>
+                                            <p className="text-sm text-muted-foreground">{format(bookingDate, 'PPP')}</p>
                                         </div>
                                         <div className='flex items-center gap-2'>
                                             {showNotification && (
@@ -239,6 +277,7 @@ export function EnquiryForm() {
                     </ScrollArea>
                 </div>
               )}
+               {enquiriesLoading && <p className="text-sm text-muted-foreground">Loading enquiries...</p>}
             </CardFooter>
           </form>
         </Form>
@@ -276,3 +315,5 @@ export function EnquiryForm() {
     </TooltipProvider>
   );
 }
+
+    
