@@ -71,7 +71,7 @@ export function RoomAndPaymentLists({ rooms, allRooms, onDeleteBooking }: RoomAn
                             <div className="flex flex-col">
                                 <span className="font-medium">{room.payment.guestName}</span>
                                 <span className="text-xs text-muted-foreground">
-                                    {room.name} - {format(new Date(room.payment.date), 'MMM d, yyyy')}
+                                    {room.name} ({room.status}) - {format(new Date(room.payment.date), 'MMM d, yyyy')}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">
