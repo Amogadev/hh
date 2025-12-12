@@ -14,10 +14,11 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { startOfDay } from 'date-fns';
+import { isWithinInterval, startOfDay } from 'date-fns';
 import { OverviewCards } from '@/components/dashboard/overview-cards';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { EnquiryForm } from '@/components/dashboard/enquiry-form';
 
 const HOTEL_ID = 'hotel-123';
 const baseRooms: Omit<Room, 'status' | 'effectiveStatus'>[] = [
@@ -44,11 +45,13 @@ function getRoomStatusForDate(
     );
     const selectedDay = startOfDay(date);
 
-    if (selectedDay >= checkIn && selectedDay < checkOut) {
-      if (room.booking.checkedIn) {
+    if (isWithinInterval(selectedDay, { start: checkIn, end: checkOut })) {
+       if (room.booking.checkedIn && selectedDay < checkOut) {
         return 'Occupied';
       }
-      return 'Booked';
+      if (selectedDay < checkOut) {
+        return 'Booked';
+      }
     }
   }
   return 'Available';
@@ -160,45 +163,49 @@ export default function DashboardPage() {
       {roomsLoading && <p>Loading rooms...</p>}
       {!roomsLoading && (
         <div className="flex flex-col gap-6">
-            <Dialog>
-                <DialogTrigger asChild>
-                <Card className="cursor-pointer hover:bg-card/80 flex flex-col flex-grow">
-                    <CardHeader>
-                    <CardTitle>Room Details</CardTitle>
-                    <CardDescription>Click to see an overview of room statistics.</CardDescription>
-                    </CardHeader>
-                </Card>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-4xl lg:max-w-6xl">
-                <DialogHeader>
-                    <DialogTitle>Room Overview</DialogTitle>
-                    <DialogDescription>
-                    Click each section to see a detailed list of rooms.
-                    </DialogDescription>
-                </DialogHeader>
-                <OverviewCards rooms={displayRooms} allRooms={allRooms} />
-                </DialogContent>
-            </Dialog>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <DashboardCalendar
-                    selectedDate={selectedDate}
-                    setSelectedDate={setSelectedDate}
-                />
-                <div className="md:col-span-2">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1 md:col-span-1 flex flex-col gap-6">
+                    <Dialog>
+                        <DialogTrigger asChild>
+                        <Card className="cursor-pointer hover:bg-card/80 flex flex-col flex-grow">
+                            <CardHeader>
+                            <CardTitle>Room Details</CardTitle>
+                            <CardDescription>Click to see an overview of room statistics.</CardDescription>
+                            </CardHeader>
+                        </Card>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-4xl lg:max-w-6xl">
+                        <DialogHeader>
+                            <DialogTitle>Room Overview</DialogTitle>
+                            <DialogDescription>
+                            Click each section to see a detailed list of rooms.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <OverviewCards rooms={displayRooms} allRooms={allRooms} />
+                        </DialogContent>
+                    </Dialog>
+                    
+                    <DashboardCalendar
+                        selectedDate={selectedDate}
+                        setSelectedDate={setSelectedDate}
+                    />
+
                     <RoomAndPaymentLists
                         rooms={displayRooms}
                         allRooms={allRooms}
                         onDeleteBooking={handleDeleteBooking}
+                        selectedDate={selectedDate}
+                    />
+                </div>
+                <div className="lg:col-span-2 md:col-span-2 flex flex-col gap-6">
+                     <RoomStatus
+                        selectedDate={selectedDate}
+                        rooms={displayRooms}
+                        onUpdateRoom={handleUpdateRoom}
                     />
                 </div>
             </div>
-
-            <RoomStatus
-                selectedDate={selectedDate}
-                rooms={displayRooms}
-                onUpdateRoom={handleUpdateRoom}
-            />
+            <EnquiryForm />
         </div>
       )}
     </div>
