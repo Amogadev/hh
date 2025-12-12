@@ -161,6 +161,13 @@ export default function DashboardPage() {
       {!roomsLoading && (
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-4">
+            <div className="lg:col-span-3 md:col-span-2">
+                <RoomStatus
+                    selectedDate={selectedDate}
+                    rooms={displayRooms}
+                    onUpdateRoom={handleUpdateRoom}
+                />
+            </div>
             <div className="lg:col-span-1 md:col-span-1 flex flex-col gap-6">
                 <Dialog>
                   <DialogTrigger asChild>
@@ -189,13 +196,6 @@ export default function DashboardPage() {
                     rooms={displayRooms}
                     allRooms={allRooms}
                     onDeleteBooking={handleDeleteBooking}
-                />
-            </div>
-            <div className="lg:col-span-3 md:col-span-2">
-                <RoomStatus
-                    selectedDate={selectedDate}
-                    rooms={displayRooms}
-                    onUpdateRoom={handleUpdateRoom}
                 />
             </div>
           </div>
