@@ -19,6 +19,8 @@ import { OverviewCards } from '@/components/dashboard/overview-cards';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EnquiryForm } from '@/components/dashboard/enquiry-form';
+import { Button } from '@/components/ui/button';
+import { FileDown } from 'lucide-react';
 
 const HOTEL_ID = 'hotel-123';
 const baseRooms: Omit<Room, 'status' | 'effectiveStatus'>[] = [
@@ -159,7 +161,13 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <h1 className="text-2xl font-bold text-center tracking-tight">WELCOME</h1>
+      <div className="flex flex-col items-center gap-4">
+        <h1 className="text-2xl font-bold text-center tracking-tight">WELCOME</h1>
+        <Button variant="outline">
+            <FileDown className="mr-2 h-4 w-4" />
+            Generate Report
+        </Button>
+      </div>
       {roomsLoading && <p>Loading rooms...</p>}
       {!roomsLoading && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
