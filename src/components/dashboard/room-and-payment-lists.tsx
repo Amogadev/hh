@@ -38,7 +38,12 @@ export function RoomAndPaymentLists({ rooms, allRooms, onDeleteBooking }: RoomAn
   const availableRooms = rooms.filter((room) => room.status === 'Available' && !room.booking);
   
   // Filter payments for rooms that are currently occupied or booked on the selected date
-  const paymentHistory = rooms.filter(r => r.payment && (r.status === 'Occupied' || r.status === 'Booked'));
+  const paymentHistory = rooms
+    .filter(r => r.payment && (r.status === 'Occupied' || r.status === 'Booked'))
+    .sort((a, b) => {
+        if (!a.payment || !b.payment) return 0;
+        return new Date(b.payment.date).getTime() - new Date(a.payment.date).getTime();
+    });
 
   const futureBookings = allRooms.filter(room => {
     if (!room.booking) return false;
