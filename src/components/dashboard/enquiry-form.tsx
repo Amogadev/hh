@@ -279,6 +279,7 @@ export function EnquiryForm() {
                         <div className="space-y-4">
                             {loggedEnquiries.map((enquiry) => {
                                 const bookingDate = enquiry.bookingDate.toDate();
+                                const isUpcoming = upcomingEnquiries.some(up => up.id === enquiry.id);
 
                                 return (
                                 <div key={enquiry.id} className="p-3 bg-muted/50 rounded-lg border">
@@ -288,6 +289,7 @@ export function EnquiryForm() {
                                             <p className="text-sm text-muted-foreground">{format(bookingDate, 'PPP')}</p>
                                         </div>
                                         <div className='flex items-center gap-2'>
+                                            {isUpcoming && <AlarmClock className="h-4 w-4 text-yellow-400" />}
                                             <Badge variant="secondary">Logged</Badge>
                                         </div>
                                     </div>
