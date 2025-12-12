@@ -60,10 +60,10 @@ export function RoomAndPaymentLists({ rooms, onDeleteBooking }: RoomAndPaymentLi
                             className="flex justify-between items-center text-sm"
                         >
                             <div className="flex flex-col">
-                            <span>{room.payment.guestName}</span>
-                            <span className="text-xs text-muted-foreground">
-                                {room.name}
-                            </span>
+                                <span className="font-medium">{room.payment.guestName}</span>
+                                <span className="text-xs text-muted-foreground">
+                                    {room.name} - {format(new Date(room.payment.date), 'MMM d, yyyy')}
+                                </span>
                             </div>
                             <div className="flex items-center gap-2">
                             <div className="text-right">
