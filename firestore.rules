@@ -101,8 +101,8 @@ service cloud.firestore {
      * Reading and listing are restricted to prevent exposure of historical data on the client.
      */
     match /cancellations/{cancellationId} {
-      allow create, list: if isSignedIn();
-      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow read, list: if isSignedIn();
       allow update, delete: if false;
     }
   }
