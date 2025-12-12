@@ -27,10 +27,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { format, differenceInCalendarDays, isFuture } from 'date-fns';
+import { format, differenceInCalendarDays } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { AlarmClock } from 'lucide-react';
+import { AlarmClock, Pencil, Trash2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
@@ -38,6 +38,7 @@ const enquiryFormSchema = z.object({
   enquiryType: z.enum(['walk-in', 'by-phone'], { required_error: 'Please select an enquiry type.' }),
   bookingDate: z.coerce.date({ required_error: 'A date is required.' }),
   notes: z.string().min(1, 'Notes are required'),
+  id: z.string().optional(), // Add ID for editing
 });
 
 type EnquiryFormValues = z.infer<typeof enquiryFormSchema>;
@@ -48,6 +49,7 @@ export function EnquiryForm() {
   const [lastSavedEnquiry, setLastSavedEnquiry] = React.useState<EnquiryFormValues | null>(null);
   const [loggedEnquiries, setLoggedEnquiries] = React.useState<EnquiryFormValues[]>([]);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [editingEnquiryId, setEditingEnquiryId] = React.useState<string | null>(null);
 
   const form = useForm<EnquiryFormValues>({
     resolver: zodResolver(enquiryFormSchema),
@@ -59,19 +61,25 @@ export function EnquiryForm() {
 
   async function onSubmit(values: EnquiryFormValues) {
     setIsLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    console.log('Enquiry submitted:', values);
-    setLastSavedEnquiry(values);
-    setLoggedEnquiries(prevEnquiries => [values, ...prevEnquiries]);
-    setIsDialogOpen(true);
-
-    toast({
-      title: 'Enquiry Logged!',
-      description: 'The customer enquiry has been saved.',
-    });
+    if (editingEnquiryId) {
+      // Update existing enquiry
+      setLoggedEnquiries(prev => 
+        prev.map(enquiry => 
+          enquiry.id === editingEnquiryId ? { ...values, id: editingEnquiryId } : enquiry
+        )
+      );
+      toast({ title: 'Enquiry Updated!', description: 'The enquiry details have been updated.' });
+      setEditingEnquiryId(null);
+    } else {
+      // Add new enquiry
+      const newEnquiry = { ...values, id: `enq-${Date.now()}` };
+      setLastSavedEnquiry(newEnquiry);
+      setLoggedEnquiries(prevEnquiries => [newEnquiry, ...prevEnquiries]);
+      setIsDialogOpen(true);
+      toast({ title: 'Enquiry Logged!', description: 'The customer enquiry has been saved.' });
+    }
 
     setIsLoading(false);
     form.reset({
@@ -80,6 +88,25 @@ export function EnquiryForm() {
         enquiryType: undefined,
     });
   }
+  
+  const handleEdit = (enquiry: EnquiryFormValues) => {
+    setEditingEnquiryId(enquiry.id!);
+    form.reset(enquiry);
+  };
+
+  const handleDelete = (id: string) => {
+    setLoggedEnquiries(prev => prev.filter(enquiry => enquiry.id !== id));
+    toast({ title: 'Enquiry Deleted', description: 'The enquiry has been removed from the list.', variant: 'destructive' });
+  };
+  
+  const cancelEdit = () => {
+    setEditingEnquiryId(null);
+    form.reset({
+        bookingDate: new Date(),
+        notes: '',
+        enquiryType: undefined,
+    });
+  };
 
   return (
     <TooltipProvider>
@@ -87,7 +114,7 @@ export function EnquiryForm() {
         <CardHeader>
           <CardTitle>Customer Enquiry</CardTitle>
           <CardDescription>
-            Log booking interest from walk-ins or phone calls.
+            {editingEnquiryId ? 'Editing an existing enquiry.' : 'Log booking interest from walk-ins or phone calls.'}
           </CardDescription>
         </CardHeader>
         <Form {...form}>
@@ -151,22 +178,30 @@ export function EnquiryForm() {
               />
             </CardContent>
             <CardFooter className="flex-col items-start gap-4">
-               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Saving...' : 'Save Enquiry'}
-              </Button>
+               <div className="flex gap-2">
+                 <Button type="submit" disabled={isLoading}>
+                    {isLoading ? (editingEnquiryId ? 'Updating...' : 'Saving...') : (editingEnquiryId ? 'Update Enquiry' : 'Save Enquiry')}
+                  </Button>
+                  {editingEnquiryId && (
+                    <Button type="button" variant="ghost" onClick={cancelEdit}>
+                      Cancel
+                    </Button>
+                  )}
+               </div>
                {loggedEnquiries.length > 0 && (
                 <div className="w-full space-y-4 pt-4 border-t">
                     <h4 className="text-sm font-semibold text-muted-foreground">Logged Enquiries (Session)</h4>
                     <ScrollArea className="h-[150px] pr-4">
                         <div className="space-y-4">
-                            {loggedEnquiries.map((enquiry, index) => {
+                            {loggedEnquiries.map((enquiry) => {
                                 const today = new Date();
                                 const bookingDate = enquiry.bookingDate;
                                 const daysDifference = differenceInCalendarDays(bookingDate, today);
+
                                 const showNotification = daysDifference >= 0 && daysDifference <= 3;
 
                                 return (
-                                <div key={index} className="p-3 bg-muted/50 rounded-lg border">
+                                <div key={enquiry.id} className="p-3 bg-muted/50 rounded-lg border">
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <p className="font-semibold capitalize">{enquiry.enquiryType.replace('-', ' ')}</p>
@@ -186,7 +221,17 @@ export function EnquiryForm() {
                                             <Badge variant="secondary">Logged</Badge>
                                         </div>
                                     </div>
-                                    <p className="text-sm mt-2">{enquiry.notes}</p>
+                                    <p className="text-sm my-2">{enquiry.notes}</p>
+                                    <div className="flex justify-end gap-2 mt-2">
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(enquiry)}>
+                                            <Pencil className="h-4 w-4" />
+                                            <span className="sr-only">Edit</span>
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDelete(enquiry.id!)}>
+                                            <Trash2 className="h-4 w-4" />
+                                            <span className="sr-only">Delete</span>
+                                        </Button>
+                                    </div>
                                 </div>
                                 )
                             })}
