@@ -88,15 +88,17 @@ export function RoomAndPaymentLists({ rooms, allRooms, onDeleteBooking }: RoomAn
                                 {room.payment.pending > 0 ? `(Pending: ₹${room.payment.pending.toFixed(2)})` : '(Paid)'}
                                 </p>
                             </div>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                                onClick={() => onDeleteBooking(room.id)}
-                            >
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">Delete Booking</span>
-                            </Button>
+                            {room.status !== 'Occupied' && (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                    onClick={() => onDeleteBooking(room.id)}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span className="sr-only">Delete Booking</span>
+                                </Button>
+                            )}
                             </div>
                         </li>
                         ) : null

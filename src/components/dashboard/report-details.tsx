@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Room, Payment } from '@/lib/data';
+import { Room, Cancellation } from '@/lib/data';
 import { useAuth, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
 import { Badge } from '../ui/badge';
@@ -23,13 +23,14 @@ type EnquiryDocument = {
 
 type ReportDetailsProps = {
   allRooms: Room[];
+  cancellations: Cancellation[];
 };
 
 function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
     return date instanceof Timestamp ? date.toDate() : date;
 }
 
-export function ReportDetails({ allRooms }: ReportDetailsProps) {
+export function ReportDetails({ allRooms, cancellations }: ReportDetailsProps) {
   const [dateRange, setDateRange] = React.useState<{ from: Date; to: Date }>({
     from: new Date(),
     to: addDays(new Date(), 7),
@@ -38,6 +39,7 @@ export function ReportDetails({ allRooms }: ReportDetailsProps) {
     bookings: Room[];
     payments: Room[];
     enquiries: EnquiryDocument[];
+    cancelled: Cancellation[];
   } | null>(null);
 
   const firestore = useFirestore();
@@ -85,11 +87,19 @@ export function ReportDetails({ allRooms }: ReportDetailsProps) {
         return (isAfter(enquiryDate, fromDate) || isEqual(enquiryDate, fromDate)) &&
                (isBefore(enquiryDate, toDate) || isEqual(enquiryDate, toDate));
     }) || [];
+    
+    // Filter Cancellations
+    const filteredCancellations = cancellations?.filter(cancellation => {
+      const cancelledDate = getDateFromTimestampOrDate(cancellation.cancelledAt);
+        return (isAfter(cancelledDate, fromDate) || isEqual(cancelledDate, fromDate)) &&
+               (isBefore(cancelledDate, toDate) || isEqual(cancelledDate, toDate));
+    }) || [];
 
     setReportData({
         bookings: filteredBookings,
         payments: filteredPayments,
-        enquiries: filteredEnquiries
+        enquiries: filteredEnquiries,
+        cancelled: filteredCancellations,
     });
   };
 
@@ -124,6 +134,7 @@ export function ReportDetails({ allRooms }: ReportDetailsProps) {
               <TabsTrigger value="bookings">Bookings ({reportData.bookings.length})</TabsTrigger>
               <TabsTrigger value="payments">Payments ({reportData.payments.length})</TabsTrigger>
               <TabsTrigger value="enquiries">Enquiries ({reportData.enquiries.length})</TabsTrigger>
+              <TabsTrigger value="cancellations">Cancellations ({reportData.cancelled.length})</TabsTrigger>
             </TabsList>
             <ScrollArea className="flex-1 px-4">
                 <TabsContent value="bookings">
@@ -159,6 +170,20 @@ export function ReportDetails({ allRooms }: ReportDetailsProps) {
                             <p className="col-span-2 text-sm">{enquiry.notes}</p>
                         </div>
                     )) : <p className="text-center text-muted-foreground p-8">No enquiries in this date range.</p>}
+                </TabsContent>
+                 <TabsContent value="cancellations">
+                    {reportData.cancelled.length > 0 ? reportData.cancelled.map(cancellation => (
+                        <div key={cancellation.id} className="p-3 border-b grid grid-cols-4 gap-4 items-center">
+                            <p className="font-semibold">{cancellation.roomName}</p>
+                            <p>{cancellation.bookingDetails?.guestName}</p>
+                            <p className="text-sm text-muted-foreground">
+                               Cancelled on {format(getDateFromTimestampOrDate(cancellation.cancelledAt), 'PPP')}
+                            </p>
+                            <p className="text-sm font-mono">
+                                Amt: ₹{cancellation.paymentDetails?.amount.toFixed(2)}
+                            </p>
+                        </div>
+                    )) : <p className="text-center text-muted-foreground p-8">No cancellations in this date range.</p>}
                 </TabsContent>
             </ScrollArea>
           </Tabs>

@@ -25,6 +25,16 @@ export type Payment = {
   method: 'Credit Card' | 'Cash' | 'Bank Transfer' | 'GPay' | 'PhonePe';
 };
 
+export type Cancellation = {
+    id: string;
+    roomId: string;
+    roomName: string;
+    bookingDetails: Room['booking'];
+    paymentDetails: Room['payment'];
+    cancelledAt: Timestamp;
+};
+
+
 const today = new Date("2025-12-11");
 
 export const paymentsData: Payment[] = [

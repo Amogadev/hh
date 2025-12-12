@@ -142,6 +142,40 @@
         }
       },
       "required": ["userId", "enquiryType", "bookingDate", "notes", "createdAt"]
+    },
+    "Cancellation": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Cancellation",
+      "type": "object",
+      "description": "Represents a cancelled booking.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Cancellation."
+        },
+        "roomId": {
+          "type": "string",
+          "description": "The ID of the room that was cancelled."
+        },
+        "roomName": {
+          "type": "string",
+          "description": "The name of the room that was cancelled."
+        },
+        "bookingDetails": {
+          "type": "object",
+          "description": "The original booking details."
+        },
+        "paymentDetails": {
+          "type": "object",
+          "description": "The original payment details."
+        },
+        "cancelledAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the booking was cancelled."
+        }
+      },
+      "required": ["roomId", "roomName", "bookingDetails", "paymentDetails", "cancelledAt"]
     }
   },
   "auth": {
@@ -224,6 +258,22 @@
             {
               "name": "enquiryId",
               "description": "The unique identifier of the enquiry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/cancellations/{cancellationId}",
+        "definition": {
+          "entityName": "Cancellation",
+          "schema": {
+            "$ref": "#/backend/entities/Cancellation"
+          },
+          "description": "Stores records of cancelled bookings for reporting.",
+          "params": [
+            {
+              "name": "cancellationId",
+              "description": "The unique identifier of the cancellation."
             }
           ]
         }

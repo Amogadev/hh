@@ -13,7 +13,7 @@ type RoomStatusProps = {
   selectedDate: Date;
   rooms: Room[];
   onUpdateRoom: (updatedRoom: Partial<Room> & { id: string }) => void;
-  onDeleteBooking: (roomId: string) => void;
+  onDeleteBooking: (room: Room) => void;
 };
 
 export function RoomStatus({ selectedDate, rooms, onUpdateRoom, onDeleteBooking }: RoomStatusProps) {

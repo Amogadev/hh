@@ -48,7 +48,7 @@ export function RoomStatusGrid({
   selectedDate: Date;
   rooms: Room[];
   onUpdateRoom: (updatedRoom: Partial<Room> & { id: string }) => void;
-  onDeleteBooking: (roomId: string) => void;
+  onDeleteBooking: (room: Room) => void;
 }) {
   const [roomForBooking, setRoomForBooking] = React.useState<Room | null>(null);
   const [roomForManagement, setRoomForManagement] = React.useState<Room | null>(null);

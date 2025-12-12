@@ -4,7 +4,7 @@ import * as React from 'react';
 import { RoomAndPaymentLists } from '@/components/dashboard/room-and-payment-lists';
 import { DashboardCalendar } from '@/components/dashboard/dashboard-calendar';
 import { RoomStatus } from '@/components/dashboard/room-status';
-import { Room } from '@/lib/data';
+import { Room, Cancellation } from '@/lib/data';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import {
   collection,
@@ -13,8 +13,9 @@ import {
   getDocs,
   Timestamp,
   updateDoc,
+  serverTimestamp,
 } from 'firebase/firestore';
-import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { isWithinInterval, startOfDay } from 'date-fns';
 import { OverviewCards } from '@/components/dashboard/overview-cards';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -77,6 +78,14 @@ export default function DashboardPage() {
 
   const { data: firestoreRooms, isLoading: roomsLoading } =
     useCollection<Room>(roomsCollectionRef);
+    
+  const cancellationsCollectionRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'cancellations');
+  }, [firestore]);
+
+  const { data: cancellations } = useCollection<Cancellation>(cancellationsCollectionRef);
+
 
   const seedData = async () => {
     if (!firestore) return;
@@ -107,19 +116,30 @@ export default function DashboardPage() {
     }
   };
 
-  const handleDeleteBooking = (roomId: string) => {
-    if (!firestore) return;
-    const roomRef = doc(firestore, 'hotels', HOTEL_ID, 'rooms', roomId);
-    // We use updateDoc and set the fields to null instead of using FieldValue.delete()
-    // because we want to keep the 'booking' and 'payment' fields in the document structure.
+  const handleDeleteBooking = (room: Room) => {
+    if (!firestore || !room.booking) return;
+
+    // 1. Create a cancellation record
+    const cancellationData = {
+        roomId: room.id,
+        roomName: room.name,
+        bookingDetails: room.booking,
+        paymentDetails: room.payment,
+        cancelledAt: serverTimestamp(),
+    };
+    addDocumentNonBlocking(collection(firestore, 'cancellations'), cancellationData);
+    
+    // 2. Clear the booking from the room
+    const roomRef = doc(firestore, 'hotels', HOTEL_ID, 'rooms', room.id);
     updateDocumentNonBlocking(roomRef, {
       booking: null,
       payment: null,
     });
+
     toast({
         variant: "destructive",
         title: "Booking Cancelled",
-        description: `The booking for room ${roomId} has been cancelled.`,
+        description: `The booking for room ${room.name} has been cancelled.`,
     });
   };
 
@@ -188,7 +208,7 @@ export default function DashboardPage() {
                 Select a date range to generate a detailed report on bookings, payments, and enquiries.
               </DialogDescription>
             </DialogHeader>
-            <ReportDetails allRooms={allRooms} />
+            <ReportDetails allRooms={allRooms} cancellations={cancellations || []} />
           </DialogContent>
         </Dialog>
       </div>
@@ -232,7 +252,12 @@ export default function DashboardPage() {
                 <RoomAndPaymentLists
                     rooms={displayRooms}
                     allRooms={allRooms}
-                    onDeleteBooking={handleDeleteBooking}
+                    onDeleteBooking={(roomId) => {
+                        const roomToDelete = allRooms.find(r => r.id === roomId);
+                        if (roomToDelete) {
+                            handleDeleteBooking(roomToDelete);
+                        }
+                    }}
                 />
                  <EnquiryForm />
             </div>

@@ -39,7 +39,7 @@ type ManageBookingFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onUpdateRoom: (updatedRoom: Partial<Room> & { id: string }) => void;
-  onDeleteBooking: (roomId: string) => void;
+  onDeleteBooking: (room: Room) => void;
 };
 
 function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
@@ -126,12 +126,8 @@ export function ManageBookingForm({
   };
   
   const handleCancelBooking = () => {
-    onDeleteBooking(room.id);
-    toast({
-        variant: "destructive",
-        title: "Booking Cancelled",
-        description: `The booking for ${room.name} has been cancelled.`,
-    });
+    onDeleteBooking(room);
+    // Toast is now handled in the page component
     onOpenChange(false);
   }
 

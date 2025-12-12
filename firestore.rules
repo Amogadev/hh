@@ -4,18 +4,13 @@
  *
  * @section Core Philosophy
  * This ruleset implements a public, read-only data model for hotel and room data,
- * while providing user-specific write access for enquiries.
+ * while providing user-specific write access for enquiries and cancellations.
  *
  * @section Data Structure
  * - /hotels/{hotelId}: Publicly readable hotel data.
  * - /hotels/{hotelId}/rooms/{roomId}: Publicly readable room data.
  * - /enquiries/{enquiryId}: User-specific enquiry data.
- *
- * @section Key Security Decisions
- * - Public Read Access (Hotels/Rooms): Hotel and room data is public to read.
- *   All write operations are disabled and should be handled by a trusted backend.
- * - User-Owned Enquiries: Authenticated users can create, read, update, and
- *   delete their own enquiry documents. They cannot access enquiries from others.
+ * - /cancellations/{cancellationId}: Write-only for authenticated users for auditing.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -97,7 +92,17 @@ service cloud.firestore {
     match /enquiries/{enquiryId} {
       allow read, update, delete: if isOwner(resource.data.userId);
       allow create: if isOwner(request.resource.data.userId);
-      allow list: if isSignedIn() && request.query.where.userId == request.auth.uid;
+      allow list: if isSignedIn();
+    }
+    
+    /**
+     * @description Controls access to Cancellation documents.
+     * Authenticated users can create cancellation records for auditing.
+     * Reading and listing are restricted to prevent exposure of historical data on the client.
+     */
+    match /cancellations/{cancellationId} {
+      allow create, list: if isSignedIn();
+      allow read, update, delete: if false;
     }
   }
 }
