@@ -36,8 +36,10 @@ function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
 export function RoomAndPaymentLists({ rooms, allRooms, onDeleteBooking }: RoomAndPaymentListsProps) {
   const occupiedRooms = rooms.filter((room) => room.status === 'Occupied' && room.booking);
   const availableRooms = rooms.filter((room) => room.status === 'Available' && !room.booking);
-  const paymentHistory = rooms.filter(r => r.payment && r.booking);
   
+  // Filter payments for rooms that are currently occupied or booked on the selected date
+  const paymentHistory = rooms.filter(r => r.payment && (r.status === 'Occupied' || r.status === 'Booked'));
+
   const futureBookings = allRooms.filter(room => {
     if (!room.booking) return false;
     const checkInDate = startOfDay(getDateFromTimestampOrDate(room.booking.checkIn));
