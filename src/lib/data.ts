@@ -4,7 +4,7 @@ import { Timestamp } from "firebase/firestore";
 export type Room = {
   id: string;
   name: string;
-  status: 'Available' | 'Booked' | 'Occupied';
+  status: 'Available' | 'Occupied';
   booking?: {
     checkIn: Date | Timestamp;
     checkOut: Date | Timestamp;
@@ -47,9 +47,8 @@ export const roomsData: Room[] = [
 
 export const getDashboardStats = () => {
   const totalRooms = roomsData.length;
-  const bookedRooms = roomsData.filter(r => r.status === 'Booked').length;
   const occupiedRooms = roomsData.filter(r => r.status === 'Occupied').length;
-  return { totalRooms, bookedRooms, occupiedRooms };
+  return { totalRooms, occupiedRooms };
 };
 
 export const getBookings = () => {

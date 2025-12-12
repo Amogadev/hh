@@ -23,11 +23,6 @@ const statusConfig = {
     icon: Bed,
     iconClass: 'text-green-400',
   },
-  Booked: {
-    badge: 'bg-orange-900/50 text-orange-300',
-    icon: User,
-    iconClass: 'text-orange-400',
-  },
   Occupied: {
     badge: 'bg-red-900/50 text-red-300',
     icon: Bed,
@@ -68,7 +63,6 @@ export function RoomStatusGrid({
 
     const updatedRoom: Partial<Room> & { id: string } = {
       id: originalRoom.id,
-      status: 'Booked',
       booking: {
         guestName: values.guestName,
         checkIn: Timestamp.fromDate(values.checkIn),
@@ -83,7 +77,6 @@ export function RoomStatusGrid({
     <>
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {rooms.map((room) => {
-          // The effectiveStatus is now passed via props, no need to calculate it here.
           const canBook = room.status === 'Available';
 
           return (
@@ -93,7 +86,7 @@ export function RoomStatusGrid({
               onButtonClick={() => {
                 if (canBook) {
                   setRoomForBooking(room);
-                } else if (room.booking) { // Only allow management if there is a booking
+                } else if (room.booking) { 
                   setRoomForManagement(room);
                 }
               }}
@@ -139,7 +132,7 @@ function RoomCard({
   onButtonClick: () => void;
   canBook: boolean;
 }) {
-  const config = statusConfig[room.status]; // Use the status from props
+  const config = statusConfig[room.status];
   const Icon = config.icon;
 
   return (

@@ -24,7 +24,6 @@ type RoomAndPaymentListsProps = {
 
 const statusVariants: { [key in Room['status']]: string } = {
   Available: "bg-green-900/50 text-green-300",
-  Booked: "bg-orange-900/50 text-orange-300",
   Occupied: "bg-red-900/50 text-red-300",
 };
 
@@ -33,10 +32,11 @@ function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
 }
 
 export function RoomAndPaymentLists({ rooms, onDeleteBooking }: RoomAndPaymentListsProps) {
-  const occupiedRooms = rooms.filter((room) => room.status === 'Occupied');
-  const bookedRooms = rooms.filter((room) => room.status === 'Booked');
-  const availableRooms = rooms.filter((room) => room.status === 'Available');
-  const paymentHistory = occupiedRooms.concat(bookedRooms).filter(r => r.payment);
+  const occupiedRooms = rooms.filter((room) => room.status === 'Occupied' && room.booking);
+  const bookedForFuture = rooms.filter(room => room.booking && new Date() < getDateFromTimestampOrDate(room.booking.checkIn) && room.status === 'Available');
+  const availableRooms = rooms.filter((room) => room.status === 'Available' && !room.booking);
+  const paymentHistory = rooms.filter(r => r.payment && r.booking);
+
 
   return (
     <Card>
@@ -108,12 +108,12 @@ export function RoomAndPaymentLists({ rooms, onDeleteBooking }: RoomAndPaymentLi
           </AccordionItem>
           {/* Booked Rooms */}
           <AccordionItem value="booked">
-            <AccordionTrigger className='font-semibold'>Booked ({bookedRooms.length})</AccordionTrigger>
+            <AccordionTrigger className='font-semibold'>Booked ({bookedForFuture.length})</AccordionTrigger>
             <AccordionContent>
-              {bookedRooms.length > 0 ? (
+              {bookedForFuture.length > 0 ? (
                 <ul className="space-y-2">
-                  {bookedRooms.map(room => (
-                    <li key={room.id} className="flex justify-between items-center text-sm">
+                  {bookedForFuture.map(room => (
+                     <li key={room.id} className="flex justify-between items-center text-sm">
                        <span>{room.name}</span>
                        <div className="text-xs text-muted-foreground text-right">
                          <p>{room.booking?.guestName}</p>

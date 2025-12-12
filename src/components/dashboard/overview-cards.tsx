@@ -18,23 +18,25 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Room } from '@/lib/data';
-import { List, DoorOpen, Bed, BedDouble } from 'lucide-react';
+import { List, DoorOpen, Bed } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Timestamp } from 'firebase/firestore';
 
 const statusVariants: { [key in Room['status']]: string } = {
   Available: "bg-green-900/50 text-green-300",
-  Booked: "bg-orange-900/50 text-orange-300",
   Occupied: "bg-red-900/50 text-red-300",
 };
 
+function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
+  return date instanceof Timestamp ? date.toDate() : date;
+}
 
 const DetailRow = ({ room }: { room: Room }) => (
     <div className="grid grid-cols-5 gap-4 items-center p-2 rounded-lg bg-card/50 text-sm">
         <div className="font-semibold">{room.name}</div>
         <div>
-            <Badge variant="outline" className={cn("border-transparent", statusVariants[room.status])}>
+            <Badge variant="outline" className={cn("border-transparent", room.status === 'Available' ? statusVariants.Available : statusVariants.Occupied)}>
                 {room.status}
             </Badge>
         </div>
@@ -93,13 +95,13 @@ export function OverviewCards({ rooms }: { rooms: Room[] }) {
   const totalRooms = rooms;
   const availableRooms = rooms.filter(room => room.status === 'Available');
   const occupiedRooms = rooms.filter(room => room.status === 'Occupied');
-  const bookedRooms = rooms.filter(room => room.status === 'Booked');
+  const bookedForFuture = rooms.filter(room => room.booking && new Date() < getDateFromTimestampOrDate(room.booking.checkIn) && room.status === 'Available');
 
   const cardData = [
     { title: 'Total Rooms', data: totalRooms, icon: List },
     { title: 'Rooms Available', data: availableRooms, icon: DoorOpen },
     { title: 'Rooms Occupied', data: occupiedRooms, icon: Bed },
-    { title: 'Rooms Booked', data: bookedRooms, icon: BedDouble },
+    { title: 'Rooms Booked', data: bookedForFuture, icon: Bed },
   ];
 
   return (

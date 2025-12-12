@@ -14,7 +14,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { startOfDay, isWithinInterval } from 'date-fns';
+import { startOfDay } from 'date-fns';
 import { OverviewCards } from '@/components/dashboard/overview-cards';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -36,29 +36,21 @@ function getDateFromTimestampOrDate(date: Date | Timestamp): Date {
 function getRoomStatusForDate(
   room: Room,
   date: Date
-): 'Available' | 'Occupied' | 'Booked' {
+): 'Available' | 'Occupied' {
   if (room.booking) {
     const checkIn = startOfDay(getDateFromTimestampOrDate(room.booking.checkIn));
     const checkOut = startOfDay(
       getDateFromTimestampOrDate(room.booking.checkOut)
     );
     const selectedDay = startOfDay(date);
-    const today = startOfDay(new Date());
 
-    const isOccupiedNow = selectedDay >= checkIn && selectedDay < checkOut;
-    const isBookedForFuture = selectedDay < checkIn;
-
-    if (isOccupiedNow) {
+    // A room is occupied if the selected date is between check-in (inclusive)
+    // and check-out (exclusive).
+    if (selectedDay >= checkIn && selectedDay < checkOut) {
       return 'Occupied';
     }
-    
-    // The original data has future bookings relative to a hardcoded "today"
-    // To decide if a room is "Booked", we check if the selected date is *before* the check-in
-    // but the booking itself is for the future relative to the *actual* today.
-    if (checkIn > today && selectedDay < checkIn) {
-        return 'Booked';
-    }
   }
+  // Otherwise, it's available. This includes the day of check-out.
   return 'Available';
 }
 
