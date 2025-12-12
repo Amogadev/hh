@@ -67,7 +67,8 @@ export function ReportDetails({ allRooms }: ReportDetailsProps) {
         if (!room.booking) return false;
         const checkIn = getDateFromTimestampOrDate(room.booking.checkIn);
         // Check for any overlap in date ranges
-        return isAfter(checkIn, from) && isBefore(checkIn, to);
+        return (isAfter(checkIn, from) || isEqual(checkIn, from)) && 
+               (isBefore(checkIn, to) || isEqual(checkIn, to));
     });
 
     // Filter Payments
