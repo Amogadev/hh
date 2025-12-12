@@ -80,6 +80,16 @@ export function EnquiryForm() {
 
   const { data: loggedEnquiries, isLoading: enquiriesLoading } = useCollection<EnquiryDocument>(userEnquiriesQuery);
 
+  const upcomingEnquiries = React.useMemo(() => {
+    if (!loggedEnquiries) return [];
+    const today = new Date();
+    return loggedEnquiries.filter(enquiry => {
+      const bookingDate = enquiry.bookingDate.toDate();
+      const daysDifference = differenceInCalendarDays(bookingDate, today);
+      return daysDifference >= 0 && daysDifference <= 3;
+    });
+  }, [loggedEnquiries]);
+
   const form = useForm<EnquiryFormValues>({
     resolver: zodResolver(enquiryFormSchema),
     defaultValues: {
@@ -149,7 +159,44 @@ export function EnquiryForm() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Customer Enquiry</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle>Customer Enquiry</CardTitle>
+            {upcomingEnquiries.length > 0 && (
+                 <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-yellow-400">
+                            <AlarmClock className="h-5 w-5" />
+                            <span className="sr-only">Show notifications</span>
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                        <div className="grid gap-4">
+                            <div className="space-y-2">
+                                <h4 className="font-medium leading-none">Approaching Bookings</h4>
+                                <p className="text-sm text-muted-foreground">
+                                These enquiries have prospective dates soon.
+                                </p>
+                            </div>
+                            <div className="grid gap-2">
+                                {upcomingEnquiries.map(enquiry => (
+                                     <div key={enquiry.id} className="grid grid-cols-[25px_1fr] items-start pb-2 last:mb-0 last:pb-0">
+                                        <span className="flex h-2 w-2 translate-y-1 rounded-full bg-sky-500" />
+                                        <div className="grid gap-1">
+                                            <p className="text-sm font-medium leading-none">
+                                                {format(enquiry.bookingDate.toDate(), 'PPP')}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {enquiry.notes}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </PopoverContent>
+                </Popover>
+            )}
+          </div>
           <CardDescription>
             {editingEnquiryId ? 'Editing an existing enquiry.' : 'Log booking interest from walk-ins or phone calls.'}
           </CardDescription>
@@ -231,11 +278,7 @@ export function EnquiryForm() {
                     <ScrollArea className="h-[150px] pr-4">
                         <div className="space-y-4">
                             {loggedEnquiries.map((enquiry) => {
-                                const today = new Date();
                                 const bookingDate = enquiry.bookingDate.toDate();
-                                const daysDifference = differenceInCalendarDays(bookingDate, today);
-
-                                const showNotification = daysDifference >= 0 && daysDifference <= 3;
 
                                 return (
                                 <div key={enquiry.id} className="p-3 bg-muted/50 rounded-lg border">
@@ -245,19 +288,6 @@ export function EnquiryForm() {
                                             <p className="text-sm text-muted-foreground">{format(bookingDate, 'PPP')}</p>
                                         </div>
                                         <div className='flex items-center gap-2'>
-                                            {showNotification && (
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-7 w-7">
-                                                          <AlarmClock className="h-4 w-4 text-yellow-400" />
-                                                          <span className="sr-only">Show notification</span>
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-2 text-sm">
-                                                        <p>This booking date is approaching soon!</p>
-                                                    </PopoverContent>
-                                                </Popover>
-                                            )}
                                             <Badge variant="secondary">Logged</Badge>
                                         </div>
                                     </div>
@@ -284,7 +314,6 @@ export function EnquiryForm() {
           </form>
         </Form>
       </Card>
-      
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
             <DialogHeader>
