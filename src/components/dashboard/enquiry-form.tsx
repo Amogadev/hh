@@ -31,7 +31,7 @@ import { format, differenceInCalendarDays } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { AlarmClock, Pencil, Trash2 } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useAuth, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { addDoc, collection, deleteDoc, doc, serverTimestamp, updateDoc, Timestamp, query, where, orderBy } from 'firebase/firestore';
 import { updateDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -146,7 +146,7 @@ export function EnquiryForm() {
   };
 
   return (
-    <TooltipProvider>
+    
       <Card>
         <CardHeader>
           <CardTitle>Customer Enquiry</CardTitle>
@@ -246,14 +246,17 @@ export function EnquiryForm() {
                                         </div>
                                         <div className='flex items-center gap-2'>
                                             {showNotification && (
-                                                <Tooltip>
-                                                    <TooltipTrigger>
-                                                        <AlarmClock className="h-4 w-4 text-yellow-400" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>Date is approaching soon!</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                                                          <AlarmClock className="h-4 w-4 text-yellow-400" />
+                                                          <span className="sr-only">Show notification</span>
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-2 text-sm">
+                                                        <p>This booking date is approaching soon!</p>
+                                                    </PopoverContent>
+                                                </Popover>
                                             )}
                                             <Badge variant="secondary">Logged</Badge>
                                         </div>
@@ -311,6 +314,6 @@ export function EnquiryForm() {
             </DialogFooter>
         </DialogContent>
       </Dialog>
-    </TooltipProvider>
+    
   );
 }
