@@ -43,22 +43,25 @@ function getRoomStatusForDate(
       getDateFromTimestampOrDate(room.booking.checkOut)
     );
     const selectedDay = startOfDay(date);
+    const today = startOfDay(new Date());
 
-    // This logic now correctly handles checkout day as 'Available'
-    if (
-      selectedDay.getTime() >= checkIn.getTime() &&
-      selectedDay.getTime() < checkOut.getTime()
-    ) {
+    const isOccupiedNow = selectedDay >= checkIn && selectedDay < checkOut;
+    const isBookedForFuture = selectedDay < checkIn;
+
+    if (isOccupiedNow) {
       return 'Occupied';
-    } else if (
-      checkIn > selectedDay &&
-      !isWithinInterval(selectedDay, { start: checkIn, end: checkOut })
-    ) {
-      return 'Booked';
+    }
+    
+    // The original data has future bookings relative to a hardcoded "today"
+    // To decide if a room is "Booked", we check if the selected date is *before* the check-in
+    // but the booking itself is for the future relative to the *actual* today.
+    if (checkIn > today && selectedDay < checkIn) {
+        return 'Booked';
     }
   }
   return 'Available';
 }
+
 
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = React.useState<Date>(
