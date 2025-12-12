@@ -163,7 +163,7 @@ export function EnquiryForm() {
                                 const today = new Date();
                                 const bookingDate = enquiry.bookingDate;
                                 const daysDifference = differenceInCalendarDays(bookingDate, today);
-                                const showNotification = isFuture(bookingDate) && daysDifference >= 0 && daysDifference <= 3;
+                                const showNotification = daysDifference >= 0 && daysDifference <= 3;
 
                                 return (
                                 <div key={index} className="p-3 bg-muted/50 rounded-lg border">
