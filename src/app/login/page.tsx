@@ -10,7 +10,7 @@ export default function LoginPage() {
   );
 
   return (
-    <div className="relative w-full h-screen flex items-center justify-center">
+    <div className="relative w-full h-screen flex items-center justify-center p-4">
       <Image
         src={loginImage?.imageUrl || "/placeholder.svg"}
         alt={loginImage?.description || "Hotel Lobby"}
@@ -20,8 +20,8 @@ export default function LoginPage() {
         priority
       />
       <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
-      <div className="relative z-10 w-full max-w-md p-6">
-        <div className="mx-auto grid w-[350px] gap-6 bg-card p-8 rounded-lg shadow-lg">
+      <div className="relative z-10 w-full max-w-md">
+        <div className="mx-auto grid gap-6 bg-card p-8 rounded-lg shadow-lg">
           <div className="grid gap-2 text-center">
             <div className="flex items-center justify-center text-2xl font-semibold mb-2">
                 <Logo className="h-8 w-8 mr-2" />
